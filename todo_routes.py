@@ -34,6 +34,19 @@ async def update_book(book_id: int, book_status: str):
     )
 
 
+# Adding a rating to a book
+@todo_router.put("/{book_id}/rating")
+async def update_rating(book_id: int, rating: int):
+    for book in books:
+        if book.id == book_id:
+            book.rating = rating
+            return {"message": "Book rating updated successfully", "book": book}
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Book with ID = {id} was not found",
+    )
+
+
 # Delete a Book from the Library
 @todo_router.delete("/books/{book_id}")
 async def delete_book(book_id: int):
