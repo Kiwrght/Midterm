@@ -67,7 +67,7 @@ const editBook = (id) => {
         title: newTitle,
         author: newAuthor,
         genre: newGenre,
-        book-status: book.BookStatus, // updated from drop down
+        book_status: book.BookStatus, // updated from drop down
         rating: newRating,
     };
 
