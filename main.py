@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from todo_routes import todo_router
 
-app = FastAPI(title="Library API")
+app = FastAPI()
 app.include_router(todo_router)
 
 
