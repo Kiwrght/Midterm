@@ -1,0 +1,11 @@
+.reading {
+    background-color: #ffeb3b; /* Yellow */
+}
+
+.to-read {
+    background-color: #2196f3; /* Blue */
+}
+
+.completed {
+    background-color: #4caf50; /* Green */
+}

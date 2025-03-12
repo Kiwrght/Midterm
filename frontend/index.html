@@ -10,38 +10,25 @@
  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <button type="button" class="btn btn-primary">Add Book</button>
-  <div class="row row-cols-3 row-cols-md-2 g-4">
+  <button id="add-book" type="button" class="btn btn-primary">Add Book</button>
+  <div class="row .row-cols-3 row-cols-md-2 g-4">
     <div class="col">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">Card title</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Book Title</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card">
-      
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+          <p class="card-text">Title: <span id = "title"></span></p>
+          <p class="card-text">Author: <span id = "author"></span></p>
+          <p class="card-text">Rating: <span id = "rating"></span></p>
+          <p class="card-text">Genre: <span id = "genre"></span></p>
+
+          <select class="form-select" onchange="updateStatus(this)">
+            <option value="reading">Reading</option>
+            <option value="to-read">To-Read</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <button id="edit" type="button" class="btn btn-warning" onclick='editBook'>Edit Book</button>
+          <button id="delete" type="button" class="btn btn-danger" onclick='deleteBook' >Delete Book</button>
         </div>
       </div>
     </div>
