@@ -11,13 +11,18 @@ document.getElementById('add-book').addEventListener('click', (e) => {
 
 //post book function
 const postBook = () =>{
-    const title = document.getElementById('new-title').value;
-    const author = document.getElementById('new-author').value;
-    const genre = document.getElementById('new-genre').value;
-    const book_status = document.getElementById('new-status').value;
-    const rating = parseInt(document.getElementById('new-rating').value, 5);
-
-    if (title && author && genre && book_status && rating) {
+    const titleInput = document.getElementById('new-title');
+    const title =titleInput.value;
+    const authorInput = document.getElementById('new-author');
+    const author = authorInput.value;
+    const genreInput = document.getElementById('new-genre');
+    const genre = genreInput.value;
+    const book_statusInput = document.getElementById('new-status');
+    const book_status = book_statusInput.value;
+    const ratingInput = document.getElementById('new-rating');
+    const rating = ratingInput.value;
+    
+    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4 && xhr.status === 201) {
@@ -28,7 +33,7 @@ const postBook = () =>{
         xhr.open('POST', api, true);
         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
         xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
-    } else {
+    } else{
         alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
       
     }
