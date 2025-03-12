@@ -21,17 +21,13 @@ def add_book(book: Book) -> Book:
     return {"message": "Book added successfully", "book": book}
 
 
-# Update Status and Rating of a Book
-@todo_router.put("/{book_id}")
-async def update_book(book_id: int, book_status: str, rating: int):
+# Update Status of a Book
+@todo_router.put("/{book_id}/status")
+async def update_book(book_id: int, book_status: str):
     for book in books:
         if book.id == book_id:
             book.book_status = book_status
-            book.rating = rating
-            return {
-                "message": "Book status and rating updated successfully",
-                "book": book,
-            }
+            return {"message": "Book status updated successfully", "book": book}
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Book with ID = {book_id} was not found",
