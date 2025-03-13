@@ -3,7 +3,7 @@ let books = [];
 
 document.getElementById('add-book').addEventListener('click', (e) => {
     document.getElementById('save').addEventListener('click', (e) => {
-        e.preventDefault
+        e.preventDefault();
         saveBook();
         const closeBtn = document.getElementById('close');
         closeBtn.click();
@@ -13,11 +13,11 @@ document.getElementById('add-book').addEventListener('click', (e) => {
 //Save Book (Handling both POST and PUT methods)
 const saveBook = () => {
     const id = document.getElementById('book-id').value; // Checks if there is already a book ID
-    const title = document.getElementById('new-title').value;
-    const author = document.getElementById('new-author').value;
-    const genre = document.getElementById('new-genre').value;
-    const book_status = document.getElementById('new-status').value;
-    const rating = document.getElementById('new-rating').value;
+    const title = document.getElementById('book-title').value;
+    const author = document.getElementById('book-author').value;
+    const genre = document.getElementById('book-genre').value;
+    const book_status = document.getElementById('book-status').value;
+    const rating = document.getElementById('book-rating').value;
 
     if(title && author && genre && book_status && rating && rating >= 1 && rating <= 5){
         const bookData = { title, author, genre, book_status, rating };
@@ -37,15 +37,15 @@ const saveBook = () => {
 
 //post book function
 const postBook = () =>{
-    const titleInput = document.getElementById('new-title');
+    const titleInput = document.getElementById('book-title');
     const title =titleInput.value;
-    const authorInput = document.getElementById('new-author');
+    const authorInput = document.getElementById('book-author');
     const author = authorInput.value;
-    const genreInput = document.getElementById('new-genre');
+    const genreInput = document.getElementById('book-genre');
     const genre = genreInput.value;
-    const book_statusInput = document.getElementById('new-status');
+    const book_statusInput = document.getElementById('book-status');
     const book_status = book_statusInput.value;
-    const ratingInput = document.getElementById('new-rating');
+    const ratingInput = document.getElementById('book-rating');
     const rating = ratingInput.value;
     
     if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
@@ -55,6 +55,7 @@ const postBook = () =>{
                 getBooks(); //reloads books
             }
         };
+        xhr.open('POST', api, true);
         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
         xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
     } 
@@ -126,27 +127,34 @@ const updateBookStatus = (bookId, newStatus) => {
     xhr.send(JSON.stringify({ book_status: newStatus }));
 }
 
-//Edit existing book function
-const editBook = (id) => {
+//Update Book function
+const updateBook = (id, bookData) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            getBooks(); // Refresh after updating
+            closeModal();
+        }
+    };
+
+    xhr.open('PUT', `${api}/${id}`, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.send(JSON.stringify(bookData));
+};
+
+// Open modal with book data for editing
+const openEditModal = (id) => {
     const book = books.find((book) => book.id === id);
 
-    if (book){
+    document.getElementById('book-id').value = book.id;
+    document.getElementById('book-title').value = book.title;
+    document.getElementById('book-author').value = book.author;
+    document.getElementById('book-genre').value = book.genre;
+    document.getElementById('book-status').value = book.book_status;
+    document.getElementById('book-rating').value = book.rating;
 
-    // Populate the modal with the book data
-    document.getElementById('new-title').value = book.title;
-    document.getElementById('new-author').value = book.author;
-    document.getElementById('new-genre').value = book.genre;
-    document.getElementById('new-status').value = book.book_status;
-    document.getElementById('new-rating').value = book.rating;
-
-    document.getElementById('modalLabel').textContent = 'Edit Book';
-
-    // Open the modal for editing
-    const modal = new bootstrap.Modal(document.getElementById('addModal'));
-    modal.show();
-
-    document.getElementById('save-book').onclick = () => saveBook();
-    }
+    const editModal = new bootstrap.Modal(document.getElementById('exampleModal'));
+    editModal.show();
 };
 
 
@@ -160,12 +168,11 @@ const getCardColor = (status) => {
 
 //reset modal function
 const resetModal = () => {
-    document.getElementById('new-title').value = '';
-    document.getElementById('new-author').value = '';
-    document.getElementById('new-genre').value = '';
-    document.getElementById('new-status').value = '';
-    document.getElementById('new-rating').value = '';
-    document.getElementById('book-id').value = '';
+    document.getElementById('book-title').value = '';
+    document.getElementById('book-author').value = '';
+    document.getElementById('book-genre').value = '';
+    document.getElementById('book-status').value = '';
+    document.getElementById('book-rating').value = '';
 };
 
 const getBooks = () => {

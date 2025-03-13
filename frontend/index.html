@@ -26,40 +26,43 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Book Title -->
-          <div class="mb-3">
-            <label for="book-title" class="form-label">Book Title</label>
-            <input type="text" class="form-control" id="book-title" required />
-          </div>
+           <!-- Hidden Input for Book ID -->
+           <input type="hidden" id="book-id" />
+           
+            <!-- Book Title -->
+            <div class="mb-3">
+              <label for="book-title" class="form-label">Book Title</label>
+              <input type="text" class="form-control" id="book-title" required />
+            </div>
 
-          <!-- Author -->
-          <div class="mb-3">
-              <label for="book-author" class="form-label">Author</label>
-              <input type="text" class="form-control" id="book-author" required />
-          </div>
+            <!-- Author -->
+            <div class="mb-3">
+                <label for="book-author" class="form-label">Author</label>
+                <input type="text" class="form-control" id="book-author" required />
+            </div>
 
-          <!-- Genre -->
-          <div class="mb-3">
-              <label for="book-genre" class="form-label">Genre</label>
-              <input type="text" class="form-control" id="book-genre" required />
-          </div>
+            <!-- Genre -->
+            <div class="mb-3">
+                <label for="book-genre" class="form-label">Genre</label>
+                <input type="text" class="form-control" id="book-genre" required />
+            </div>
 
-          <!-- Status -->
-          <div class="mb-3">
-              <label for="book-status" class="form-label">Status</label>
-              <select class="form-select" id="book-status" required>
-                  <option value="reading">Reading</option>
-                  <option value="to-read">To-Read</option>
-                  <option value="completed">Completed</option>
-              </select>
-          </div>
+            <!-- Status -->
+            <div class="mb-3">
+                <label for="book-status" class="form-label">Status</label>
+                <select class="form-select" id="book-status" required>
+                    <option value="reading">Reading</option>
+                    <option value="to-read">To-Read</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
 
-          <!-- Rating -->
-          <div class="mb-3">
-              <label for="book-rating" class="form-label">Rating</label>
-              <input type="number" class="form-control" id="book-rating" min="1" max="5" required />
+            <!-- Rating -->
+            <div class="mb-3">
+                <label for="book-rating" class="form-label">Rating</label>
+                <input type="number" class="form-control" id="book-rating" min="1" max="5" required />
+            </div>
           </div>
-        </div>
         <div class="modal-footer">
           <button id="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button id="save" type="button" class="btn btn-primary">Save</button>
