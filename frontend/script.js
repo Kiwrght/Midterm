@@ -2,36 +2,36 @@ const api = 'http://localhost:8000/books';
 let books = [];
 
 document.getElementById('add-book').addEventListener('click', (e) => {
+    resetModal(); // Reset the modal form
     e.preventDefault();
-    const saveBtn = document.getElementById('save');
     postBook();
-    saveBtn.click();
     const closeBtn = document.getElementById('close-modal');
     closeBtn.click();
 });
 
-// Listen for Save button in the modal
-document.getElementById('edit').addEventListener('click', (e) => {
-    e.preventDefault(); // Prevent form from submitting the usual way
-
+//Save Book (Handling both POST and PUT methods)
+const saveBook = () => {
+    const id = document.getElementById('book-id').value; // Checks if there is already a book ID
     const title = document.getElementById('new-title').value;
     const author = document.getElementById('new-author').value;
     const genre = document.getElementById('new-genre').value;
     const book_status = document.getElementById('new-status').value;
     const rating = document.getElementById('new-rating').value;
 
-    // Validate inputs before sending to server
-    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
-        // Call postBook function to either add or update book
-        postBook(title, author, genre, book_status, rating);
+    if(title && author && genre && book_status && rating && rating >= 1 && rating <= 5){
+        const bookData = { title, author, genre, book_status, rating };
 
-        // Close the modal after saving the changes
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
-        modal.hide();
-    } else {
+        if (id) {
+            updateBook(id, bookData);
+        }
+        else {
+            postBook(bookData);
+        }
+    }
+    else{
         alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
     }
-});
+};
 
 
 //post book function
@@ -129,7 +129,7 @@ const updateBookStatus = (bookId, newStatus) => {
 const editBook = (id) => {
     const book = books.find((book) => book.id === id);
 
-    if (!book) return;
+    if (book){
 
     // Populate the modal with the book data
     document.getElementById('new-title').value = book.title;
@@ -138,9 +138,14 @@ const editBook = (id) => {
     document.getElementById('new-status').value = book.book_status;
     document.getElementById('new-rating').value = book.rating;
 
+    document.getElementById('modalLabel').textContent = 'Edit Book';
+
     // Open the modal for editing
     const modal = new bootstrap.Modal(document.getElementById('addModal'));
     modal.show();
+
+    document.getElementById('save-book').onclick = () => saveBook();
+    }
 };
 
 
@@ -152,6 +157,15 @@ const getCardColor = (status) => {
     return 'bg-light'; // Default color
 };
 
+//reset modal function
+const resetModal = () => {
+    document.getElementById('new-title').value = '';
+    document.getElementById('new-author').value = '';
+    document.getElementById('new-genre').value = '';
+    document.getElementById('new-status').value = '';
+    document.getElementById('new-rating').value = '';
+    document.getElementById('book-id').value = '';
+};
 
 const getBooks = () => {
     const xhr = new XMLHttpRequest();
