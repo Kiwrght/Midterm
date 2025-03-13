@@ -2,12 +2,12 @@ const api = 'http://localhost:8000/books';
 let books = [];
 
 document.getElementById('add-book').addEventListener('click', (e) => {
-    resetModal(); // Reset the modal form
-    e.preventDefault();
-
-    document.getElementById('save-book').onclick = () => saveBook();
-    const closeBtn = document.getElementById('close-modal');
-    closeBtn.click();
+    document.getElementById('save').addEventListener('click', (e) => {
+        e.preventDefault
+        saveBook();
+        const closeBtn = document.getElementById('close');
+        closeBtn.click();
+    });
 });
 
 //Save Book (Handling both POST and PUT methods)
