@@ -1,16 +1,36 @@
 const api = 'http://localhost:8000/books';
 let books = [];
 
-
 document.getElementById('add-book').addEventListener('click', (e) => {
-   
-    document.getElementById('save-new-book').addEventListener('click', (e) => {
-        e.preventDefault();
-        postBook();  // Call postBook function when Save button is clicked
-        const closeBtn = document.getElementById('add-close');
-        closeBtn.click();  // Close the modal after saving the book
-    });
+    e.preventDefault();
+    postBook();
+    const closeBtn = document.getElementById('close-modal');
+    closeBtn.click();
 });
+
+// Listen for Save button in the modal
+document.getElementById('save').addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent form from submitting the usual way
+
+    const title = document.getElementById('new-title').value;
+    const author = document.getElementById('new-author').value;
+    const genre = document.getElementById('new-genre').value;
+    const book_status = document.getElementById('new-status').value;
+    const rating = document.getElementById('new-rating').value;
+
+    // Validate inputs before sending to server
+    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
+        // Call postBook function to either add or update book
+        postBook(title, author, genre, book_status, rating);
+
+        // Close the modal after saving the changes
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
+        modal.hide();
+    } else {
+        alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
+    }
+});
+
 
 //post book function
 const postBook = () =>{
@@ -32,14 +52,6 @@ const postBook = () =>{
                 getBooks(); //reloads books
             }
         };
-
-        if(id){
-            xhr.open('PUT', `${api}/${id}`, true);
-        }
-        else{
-            xhr.open('POST', api, true);
-        }
-
         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
         xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
     } 
@@ -55,17 +67,44 @@ const deleteBook = (id) => {
     console.log(`deleting Book ID=${id}`);
 
     if(confirm('Are you sure you want to delete this book?')){
+        console.log(`Deleting Book ID=${id}`);
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 getBooks(); //reloads books
-                console.log(`deleted Book ID=${id}`);
+                console.log(`Deleted Book ID=${id}`);
             }
         };
 
         xhr.open('DELETE', `${api}/${id}`, true);
         xhr.send();
     }
+};
+
+//display books function
+const displayBooks = (books) => {
+    const bookList = document.getElementById('book-list');
+    bookList.innerHTML = ''; // clears existing content
+
+    books.forEach((book) => {
+        const bookElement = document.createElement('div');
+        bookElement.className = `col-12 col-md-4 card mb-3 ${getCardColor(book.book_status)}`;
+        bookElement.innerHTML = `
+            <div class="card-body">
+                <h3 class="card-title">${book.title}</h3>
+                <p class="card-text">Author: ${book.author}</p>
+                <p class="card-text">Genre: ${book.genre}</p>
+                <p class="card-text">Status: ${book.book_status}</p>
+                <p class="card-text">Rating: ${book.rating}</p>
+
+
+                <button class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
+                <button class="btn btn-danger" onclick="deleteBook(${book.id})">Delete Book</button>
+            </div>
+        `;
+        bookList.appendChild(bookElement);
+        
+    });
 };
 
 //update books status function
@@ -102,57 +141,6 @@ const editBook = (id) => {
     modal.show();
 };
 
-// Listen for Save button in the modal
-document.getElementById('save-new-book').addEventListener('click', (e) => {
-    e.preventDefault(); // Prevent form from submitting the usual way
-    
-    // Get form data
-    const title = document.getElementById('new-title').value;
-    const author = document.getElementById('new-author').value;
-    const genre = document.getElementById('new-genre').value;
-    const book_status = document.getElementById('new-status').value;
-    const rating = document.getElementById('new-rating').value;
-
-    // Validate inputs before sending to server
-    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
-        // Call postBook function to either add or update book
-        postBook(editingBookId, title, author, genre, book_status, rating);
-
-        // Close the modal after saving the changes
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
-        modal.hide();
-    } else {
-        alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
-    }
-});
-
-
-
-//display books function
-const displayBooks = (books) => {
-    const bookList = document.getElementById('book-list');
-    bookList.innerHTML = ''; // clears existing content
-
-    books.forEach((book) => {
-        const bookElement = document.createElement('div');
-        bookElement.className = `col-12 col-md-4 card mb-3 ${getCardColor(book.book_status)}`;
-        bookElement.innerHTML = `
-            <div class="card-body">
-                <h3 class="card-title">${book.title}</h3>
-                <p class="card-text">Author: ${book.author}</p>
-                <p class="card-text">Genre: ${book.genre}</p>
-                <p class="card-text">Status: ${book.book_status}</p>
-                <p class="card-text">Rating: ${book.rating}</p>
-
-
-                <button class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
-                <button class="btn btn-danger" onclick="deleteBook(${book.id})">Delete Book</button>
-            </div>
-        `;
-        bookList.appendChild(bookElement);
-        
-    });
-};
 
 // Helper function to set color based on status
 const getCardColor = (status) => {
