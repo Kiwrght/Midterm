@@ -1,6 +1,7 @@
 const api = 'http://localhost:8000/books';
 let books = [];
 
+
 document.getElementById('add-book').addEventListener('click', (e) => {
    
     document.getElementById('save-new-book').addEventListener('click', (e) => {
@@ -99,15 +100,32 @@ const editBook = (id) => {
     // Open the modal for editing
     const modal = new bootstrap.Modal(document.getElementById('addModal'));
     modal.show();
-
-    // Event listener for the Save button in the modal
-    document.getElementById('save-new-book').addEventListener('click', (e) => {
-        e.preventDefault();
-        postBook(id);  // Call postBook with the book id to update it
-        const closeBtn = document.getElementById('add-close');
-        closeBtn.click();  // Close the modal after saving the updated book
-    });
 };
+
+// Listen for Save button in the modal
+document.getElementById('save-new-book').addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent form from submitting the usual way
+    
+    // Get form data
+    const title = document.getElementById('new-title').value;
+    const author = document.getElementById('new-author').value;
+    const genre = document.getElementById('new-genre').value;
+    const book_status = document.getElementById('new-status').value;
+    const rating = document.getElementById('new-rating').value;
+
+    // Validate inputs before sending to server
+    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
+        // Call postBook function to either add or update book
+        postBook(editingBookId, title, author, genre, book_status, rating);
+
+        // Close the modal after saving the changes
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
+        modal.hide();
+    } else {
+        alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
+    }
+});
+
 
 
 //display books function

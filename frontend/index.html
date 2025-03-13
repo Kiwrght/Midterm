@@ -10,79 +10,62 @@
  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="px-3">
-    <button
-      id ='add-book'
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#addModal"
-    >
-      Add Book
-    </button>
-  </div>
+  <h5 class="text-center mt-3">BookShelf</h5>
+
+  <!-- Button trigger modal -->
+  <button id = "add-book" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Add Book
+  </button>
+  <button id = "edit-book" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Edit
+  </button>
 
   <!-- Modal -->
-  <div
-    class="modal fade"
-    id="addModal"
-    tabindex="-1"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="exampleModalLabel">New Book</h1>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <!-- Book Title -->
           <div class="mb-3">
-            <label for="new-title" class="form-label">Book Title</label>
-            <input type="text" class="form-control" id="new-title" required />
+            <label for="book-title" class="form-label">Book Title</label>
+            <input type="text" class="form-control" id="book-title" required />
           </div>
 
           <!-- Author -->
           <div class="mb-3">
-            <label for="new-author" class="form-label">Author</label>
-            <input type="text" class="form-control" id="new-author" required />
+              <label for="book-author" class="form-label">Author</label>
+              <input type="text" class="form-control" id="book-author" required />
           </div>
 
           <!-- Genre -->
           <div class="mb-3">
-            <label for="new-genre" class="form-label">Genre</label>
-            <input type="text" class="form-control" id="new-genre" required />
+              <label for="book-genre" class="form-label">Genre</label>
+              <input type="text" class="form-control" id="book-genre" required />
           </div>
 
-         <!-- Status (Only appears in the modal) -->
-         <div class="mb-3">
-          <label for="new-status" class="form-label">Status</label>
-          <select class="form-select" id="new-status" required>
-            <option value="reading">Reading</option>
-            <option value="to-read">To-Read</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
+          <!-- Status -->
+          <div class="mb-3">
+              <label for="book-status" class="form-label">Status</label>
+              <select class="form-select" id="book-status" required>
+                  <option value="reading">Reading</option>
+                  <option value="to-read">To-Read</option>
+                  <option value="completed">Completed</option>
+              </select>
+          </div>
 
           <!-- Rating -->
           <div class="mb-3">
-            <label for="new-rating" class="form-label">Rating</label>
-            <input type="number" class="form-control" id="new-rating" min="1" max="5" required />
+              <label for="book-rating" class="form-label">Rating</label>
+              <input type="number" class="form-control" id="book-rating" min="1" max="5" required />
           </div>
         </div>
         <div class="modal-footer">
-          <button id="add-close" type="button"class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-          </button>
-          <button id="save-new-book" type="button" class="btn btn-primary">
-            Save
-          </button>
+          <button id="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button id="save" type="button" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
