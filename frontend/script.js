@@ -169,9 +169,9 @@ const displayBooks = (books) => {
 
 // Helper function to set color based on status
 const getCardColor = (status) => {
-    if (status === 'reading') return ''; // Yellow for reading
-    if (status === 'to-read') return 'bg-info'; // Blue for to-read
-    if (status === 'completed') return 'bg-success'; // Green for completed
+    if (status === 'reading') return 'reading'; // Yellow for reading
+    if (status === 'to-read') return 'to-read'; // Blue for to-read
+    if (status === 'completed') return 'completed'; // Green for completed
     return 'bg-light'; // Default color
 };
 
