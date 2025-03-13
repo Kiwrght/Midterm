@@ -1,39 +1,68 @@
 const api = 'http://localhost:8000/books';
 let books = [];
 
-document.getElementById('add-book').addEventListener('click', (e) => {
-    document.getElementById('save').addEventListener('click', (e) => {
-        e.preventDefault();
-        saveBook();
-        const closeBtn = document.getElementById('close');
-        closeBtn.click();
-    });
-});
+const getBooks = () => {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        books = JSON.parse(xhr.responseText);
+        console.log(books);
+        displayBooks(books);
+      }
+    };
+  
+    xhr.open('GET', api, true);
+    xhr.send();
+  };
+
+  
 
 //Save Book (Handling both POST and PUT methods)
-const saveBook = () => {
-    const id = document.getElementById('book-id').value; // Checks if there is already a book ID
-    const title = document.getElementById('book-title').value;
-    const author = document.getElementById('book-author').value;
-    const genre = document.getElementById('book-genre').value;
-    const book_status = document.getElementById('book-status').value;
-    const rating = document.getElementById('book-rating').value;
+const editBook = (id) => {
+    console.log(`Editing book ID=${id}`);
 
-    if(title && author && genre && book_status && rating && rating >= 1 && rating <= 5){
-        const bookData = { title, author, genre, book_status, rating };
+    // Find the book from the list
+    const book = books.find((book) => book.id === id);
 
-        if (id) {
-            updateBook(id, bookData);
-        }
-        else {
-            postBook(bookData);
-        }
-    }
-    else{
-        alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
+    if (book) {
+        // Populate modal with book data
+        document.getElementById('book-title').value = book.title;
+        document.getElementById('book-author').value = book.author;
+        document.getElementById('book-genre').value = book.genre;
+        document.getElementById('book-status').value = book.book_status;
+        document.getElementById('book-rating').value = book.rating;
+
+        // Open the modal
+        const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+        modal.show();
+
+        // Add event listener to "Save" button for updating
+        document.getElementById('save').onclick = () => {
+            const title = document.getElementById('book-title').value;
+            const author = document.getElementById('book-author').value;
+            const genre = document.getElementById('book-genre').value;
+            const book_status = document.getElementById('book-status').value;
+            const rating = document.getElementById('book-rating').value;
+
+            if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
+                const bookData = { title, author, genre, book_status, rating };
+
+                const xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        getBooks(); // Reload books after updating
+                        modal.hide(); // Close modal after saving
+                    }
+                }
+                xhr.open('PUT', `${api}/${id}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                xhr.send(JSON.stringify(bookData));
+            } else {
+                alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
+            }
+        };
     }
 };
-
 
 //post book function
 const postBook = () =>{
@@ -127,13 +156,15 @@ const updateBookStatus = (bookId, newStatus) => {
     xhr.send(JSON.stringify({ book_status: newStatus }));
 }
 
+
+
 //Update Book function
 const updateBook = (id, bookData) => {
+
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
         if (xhr.readyState === 4 && xhr.status === 200) {
             getBooks(); // Refresh after updating
-            closeModal();
         }
     };
 
@@ -141,22 +172,6 @@ const updateBook = (id, bookData) => {
     xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
     xhr.send(JSON.stringify(bookData));
 };
-
-// Open modal with book data for editing
-const openEditModal = (id) => {
-    const book = books.find((book) => book.id === id);
-
-    document.getElementById('book-id').value = book.id;
-    document.getElementById('book-title').value = book.title;
-    document.getElementById('book-author').value = book.author;
-    document.getElementById('book-genre').value = book.genre;
-    document.getElementById('book-status').value = book.book_status;
-    document.getElementById('book-rating').value = book.rating;
-
-    const editModal = new bootstrap.Modal(document.getElementById('exampleModal'));
-    editModal.show();
-};
-
 
 // Helper function to set color based on status
 const getCardColor = (status) => {
@@ -175,19 +190,15 @@ const resetModal = () => {
     document.getElementById('book-rating').value = '';
 };
 
-const getBooks = () => {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState == 4 && xhr.status == 200) {
-        books = JSON.parse(xhr.responseText);
-        console.log(books);
-        displayBooks(books);
-      }
-    };
-  
-    xhr.open('GET', api, true);
-    xhr.send();
-  };
+document.getElementById('add-book').addEventListener('click', (e) => {
+    document.getElementById('save').addEventListener('click', (e) => {
+        e.preventDefault();
+        postBook();
+        const closeBtn = document.getElementById('close');
+        closeBtn.click();
+    });
+});
+
 
 //load books on  the page
 (() => {

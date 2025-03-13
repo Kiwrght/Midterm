@@ -76,11 +76,10 @@ async def update_rating(book_id: int, rating: int):
 # Delete a Book from the Library
 @todo_router.delete("/{book_id}")
 async def delete_book(book_id: int):
-    for i in range(len(books_list)):
-        book = books_list[i]
-        if book.id == book_id:
-            books_list.pop(i)
-            return {"message": f"The Book with ID={book_id} is removed."}
+    for index, book in enumerate(books):
+        if book["id"] == book_id:
+            books.pop(index)
+            return {"message": "Book deleted"}
 
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
