@@ -1,4 +1,6 @@
 const api = 'http://localhost:8000/books';
+let books = [];
+
 document.getElementById('add-book').addEventListener('click', (e) => {
    
     document.getElementById('save-new-book').addEventListener('click', (e) => {
@@ -30,12 +32,18 @@ const postBook = () =>{
             }
         };
 
-        xhr.open('POST', api, true);
+        if(id){
+            xhr.open('PUT', `${api}/${id}`, true);
+        }
+        else{
+            xhr.open('POST', api, true);
+        }
+
         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
         xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
-    } else{
+    } 
+    else{
         alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
-      
     }
 };
 
@@ -61,47 +69,46 @@ const deleteBook = (id) => {
 
 //update books status function
 const updateBookStatus = (bookId, newStatus) => {
-    console.log(`Updating book status: Book ID=${id}`);
+    console.log(`Updating book status: Book ID=${bookId}, Status=${newStatus}`);
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
         if (xhr.readyState === 4 && xhr.status === 200) {
             getBooks(); //reloads books
-            console.log(`Updated book status: Book ID=${id}`);
+            console.log(`Updated book status: Book ID=${bookId}`);
         }
     };
+
+    xhr.open('PUT', `${api}/${bookId}/status`, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.send(JSON.stringify({ book_status: newStatus }));
 }
 
 //Edit existing book function
 const editBook = (id) => {
     const book = books.find((book) => book.id === id);
-    const newTitle = book.title;
-    const newAuthor = book.author;
-    const newGenre = book.genre;
-    const newRating = book.rating;
 
-    if (newRating < 1 || newRating > 5) {
-        alert('Invalid rating. Please use a rating between 1 and 5.');
-        return;
-    }
+    if (!book) return;
 
-    const updatedBook = {
-        title: newTitle,
-        author: newAuthor,
-        genre: newGenre,
-        book_status: book.BookStatus, // updated from drop down
-        rating: newRating,
-    };
+    // Populate the modal with the book data
+    document.getElementById('new-title').value = book.title;
+    document.getElementById('new-author').value = book.author;
+    document.getElementById('new-genre').value = book.genre;
+    document.getElementById('new-status').value = book.book_status;
+    document.getElementById('new-rating').value = book.rating;
 
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            getBooks(); //reloads books
-        }
-    };
-    xhr.open('PUT', `${api}/${id}`, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    xhr.send(JSON.stringify(updatedBook));
+    // Open the modal for editing
+    const modal = new bootstrap.Modal(document.getElementById('addModal'));
+    modal.show();
+
+    // Event listener for the Save button in the modal
+    document.getElementById('save-new-book').addEventListener('click', (e) => {
+        e.preventDefault();
+        postBook(id);  // Call postBook with the book id to update it
+        const closeBtn = document.getElementById('add-close');
+        closeBtn.click();  // Close the modal after saving the updated book
+    });
 };
+
 
 //display books function
 const displayBooks = (books) => {
@@ -119,13 +126,8 @@ const displayBooks = (books) => {
                 <p class="card-text">Status: ${book.book_status}</p>
                 <p class="card-text">Rating: ${book.rating}</p>
 
-                 <select class="form-select" onchange="updateBookStatus(${book.id}, this.value)">
-                    <option value="reading" ${book.book_status === 'reading'}>Reading</option>
-                    <option value="to-read" ${book.book_status === 'to-read'}>To-Read</option>
-                    <option value="completed" ${book.book_status === 'completed'}>Completed</option>
-                </select>
 
-                 <button class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
+                <button class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
                 <button class="btn btn-danger" onclick="deleteBook(${book.id})">Delete Book</button>
             </div>
         `;
@@ -147,9 +149,9 @@ const getBooks = () => {
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
       if (xhr.readyState == 4 && xhr.status == 200) {
-       const data = JSON.parse(xhr.responseText);
-        console.log(data);
-        displayBooks(data);
+        books = JSON.parse(xhr.responseText);
+        console.log(books);
+        displayBooks(books);
       }
     };
   
