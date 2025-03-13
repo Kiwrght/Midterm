@@ -14,8 +14,6 @@ const getBooks = () => {
     xhr.send();
 };
 
-  
-
 //Save Book (Handling both POST and PUT methods)
 const editBook = (id) => {
     console.log(`Editing book ID=${id}`);
@@ -30,43 +28,20 @@ const editBook = (id) => {
         document.getElementById('book-genre').value = book.genre;
         document.getElementById('book-status').value = book.book_status;
         document.getElementById('book-rating').value = book.rating;
+        
+        // Store the book ID in the hidden input
+        document.getElementById('book-id').value = id;
 
         // Open the modal
         const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
         modal.show();
-
-        // Add event listener to "Save" button for updating
-        document.getElementById('save').onclick = () => {
-            const title = document.getElementById('book-title').value;
-            const author = document.getElementById('book-author').value;
-            const genre = document.getElementById('book-genre').value;
-            const book_status = document.getElementById('book-status').value;
-            const rating = document.getElementById('book-rating').value;
-
-            if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
-                const bookData = { title, author, genre, book_status, rating };
-
-                const xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        getBooks(); // Reload books after updating
-                        modal.hide(); // Close modal after saving
-                    }
-                }
-                xhr.open('PUT', `${api}/${id}`, true);
-                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-                xhr.send(JSON.stringify(bookData));
-            } else {
-                alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
-            }
-        };
     }
 };
 
 //post book function
-const postBook = () =>{
+const postBook = () => {
     const titleInput = document.getElementById('book-title');
-    const title =titleInput.value;
+    const title = titleInput.value;
     const authorInput = document.getElementById('book-author');
     const author = authorInput.value;
     const genreInput = document.getElementById('book-genre');
@@ -74,26 +49,75 @@ const postBook = () =>{
     const book_statusInput = document.getElementById('book-status');
     const book_status = book_statusInput.value;
     const ratingInput = document.getElementById('book-rating');
-    const rating = ratingInput.value;
+    const rating = parseInt(ratingInput.value);
     
-    if (title && author && genre && book_status && rating && rating >= 1 && rating <= 5) {
-        const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === 4 && xhr.status === 201) {
-                getBooks(); //reloads books
-                resetModal();
-            }
-        };
-        xhr.open('POST', api, true);
-        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-        xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
-    } 
-    else{
-        alert('Invalid input. Please fill all fields and use a rating between 1 and 5.');
+    // Improved validation with custom error display
+    let errorMessage = "";
+    if (!title) errorMessage = "Please enter a book title.";
+    else if (!author) errorMessage = "Please enter an author name.";
+    else if (!genre) errorMessage = "Please enter a genre.";
+    else if (!rating) errorMessage = "Please enter a rating.";
+    else if (rating < 1 || rating > 5) errorMessage = "Rating must be between 1 and 5.";
+    
+    if (errorMessage) {
+        alert(errorMessage);
+        return false; // Prevent form submission
     }
+    
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 201) {
+            getBooks(); // Reload books
+            resetModal();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+            modal.hide(); // Close modal after saving
+        }
+    };
+    xhr.open('POST', api, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
+    
+    return true; // Indicate successful submission
 };
 
-
+// Update existing book
+const updateBook = (id) => {
+    const title = document.getElementById('book-title').value;
+    const author = document.getElementById('book-author').value;
+    const genre = document.getElementById('book-genre').value;
+    const book_status = document.getElementById('book-status').value;
+    const rating = parseInt(document.getElementById('book-rating').value);
+    
+    // Improved validation with custom error display
+    let errorMessage = "";
+    if (!title) errorMessage = "Please enter a book title.";
+    else if (!author) errorMessage = "Please enter an author name.";
+    else if (!genre) errorMessage = "Please enter a genre.";
+    else if (!rating) errorMessage = "Please enter a rating.";
+    else if (rating < 0 || rating > 5) errorMessage = "Rating must be between 0 and 5.";
+    
+    if (errorMessage) {
+        alert(errorMessage);
+        return false; // Prevent form submission
+    }
+    
+    const bookData = { title, author, genre, book_status, rating };
+    
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            getBooks(); // Reload books after updating
+            resetModal();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+            modal.hide(); // Close modal after saving
+        }
+    };
+    xhr.open('PUT', `${api}/${id}`, true);
+    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    xhr.send(JSON.stringify(bookData));
+    
+    return true; // Indicate successful submission
+};
 
 //delete book function
 const deleteBook = (id) => {
@@ -131,12 +155,15 @@ const displayBooks = (books) => {
                 <p class="card-text">Rating: ${book.rating}</p>
 
 
-                <button id ="edit" class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
-                <button class="btn btn-danger" onclick="deleteBook(${book.id})">Delete Book</button>
+                <button id="edit-${book.id}" class="btn btn-warning">Edit Book</button>
+                <button id="delete-${book.id}" class="btn btn-danger">Delete Book</button>
             </div>
         `;
         bookList.appendChild(bookElement);
         
+        // Add event listeners after adding the element to the DOM
+        document.getElementById(`edit-${book.id}`).addEventListener('click', () => editBook(book.id));
+        document.getElementById(`delete-${book.id}`).addEventListener('click', () => deleteBook(book.id));
     });
 };
 
@@ -150,47 +177,58 @@ const getCardColor = (status) => {
 
 //reset modal function
 const resetModal = () => {
+    document.getElementById('book-id').value = '';
     document.getElementById('book-title').value = '';
     document.getElementById('book-author').value = '';
     document.getElementById('book-genre').value = '';
-    document.getElementById('book-status').value = '';
+    document.getElementById('book-status').value = 'reading'; // Default value
     document.getElementById('book-rating').value = '';
 };
 
-//Button Code
-
-document.getElementById('add-book').addEventListener('click', (e) => {
+// Initialize event listeners once when the page loads
+const initializeEventListeners = () => {
+    // Handle save button click
     document.getElementById('save').addEventListener('click', (e) => {
         e.preventDefault();
-        postBook();
-        const closeBtn = document.getElementById('close');
-        closeBtn.click();
+        const bookId = document.getElementById('book-id').value;
+        
+        let success = false;
+        if (bookId) {
+            // Update existing book
+            success = updateBook(bookId);
+        } else {
+            // Add new book
+            success = postBook();
+        }
     });
-});
 
-// Filter Books by Status
-document.getElementById('filter-reading').addEventListener('click', () => {
-    const filteredBooks = books.filter(book => book.book_status === 'reading');
+    // Reset modal when it's closed or reset button is clicked
+    document.getElementById('exampleModal').addEventListener('hidden.bs.modal', resetModal);
+    document.getElementById('close').addEventListener('click', resetModal);
 
-    displayBooks(filteredBooks);
-});
+    // Set up filter buttons
+    document.getElementById('filter-reading').addEventListener('click', () => {
+        const filteredBooks = books.filter(book => book.book_status === 'reading');
+        displayBooks(filteredBooks);
+    });
 
-document.getElementById('filter-to-read').addEventListener('click', () => {
-    const filteredBooks = books.filter(book => book.book_status === 'to-read');
-    displayBooks(filteredBooks);
-});
+    document.getElementById('filter-to-read').addEventListener('click', () => {
+        const filteredBooks = books.filter(book => book.book_status === 'to-read');
+        displayBooks(filteredBooks);
+    });
 
-document.getElementById('filter-completed').addEventListener('click', () => {
-    const filteredBooks = books.filter(book => book.book_status === 'completed');
-    displayBooks(filteredBooks); 
-});
+    document.getElementById('filter-completed').addEventListener('click', () => {
+        const filteredBooks = books.filter(book => book.book_status === 'completed');
+        displayBooks(filteredBooks); 
+    });
 
-document.getElementById('filter-all').addEventListener('click', () => {
-    displayBooks(books); 
-});
+    document.getElementById('filter-all').addEventListener('click', () => {
+        displayBooks(books); 
+    });
+};
 
-
-//load books on  the page
+//load books and initialize event listeners when the page loads
 (() => {
     getBooks();
+    initializeEventListeners();
 })();
