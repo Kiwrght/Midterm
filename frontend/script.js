@@ -4,7 +4,8 @@ let books = [];
 document.getElementById('add-book').addEventListener('click', (e) => {
     resetModal(); // Reset the modal form
     e.preventDefault();
-    postBook();
+
+    document.getElementById('save-book').onclick = () => saveBook();
     const closeBtn = document.getElementById('close-modal');
     closeBtn.click();
 });
