@@ -3,13 +3,15 @@ let books = [];
 
 document.getElementById('add-book').addEventListener('click', (e) => {
     e.preventDefault();
+    const saveBtn = document.getElementById('save');
     postBook();
+    saveBtn.click();
     const closeBtn = document.getElementById('close-modal');
     closeBtn.click();
 });
 
 // Listen for Save button in the modal
-document.getElementById('save').addEventListener('click', (e) => {
+document.getElementById('edit').addEventListener('click', (e) => {
     e.preventDefault(); // Prevent form from submitting the usual way
 
     const title = document.getElementById('new-title').value;
@@ -98,7 +100,7 @@ const displayBooks = (books) => {
                 <p class="card-text">Rating: ${book.rating}</p>
 
 
-                <button class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
+                <button id ="edit" class="btn btn-warning" onclick="editBook(${book.id})">Edit Book</button>
                 <button class="btn btn-danger" onclick="deleteBook(${book.id})">Delete Book</button>
             </div>
         `;
