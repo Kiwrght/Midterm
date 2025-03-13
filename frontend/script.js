@@ -6,14 +6,13 @@ const getBooks = () => {
     xhr.onreadystatechange = () => {
       if (xhr.readyState == 4 && xhr.status == 200) {
         books = JSON.parse(xhr.responseText);
-        console.log(books);
         displayBooks(books);
       }
     };
   
     xhr.open('GET', api, true);
     xhr.send();
-  };
+};
 
   
 
@@ -82,6 +81,7 @@ const postBook = () =>{
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4 && xhr.status === 201) {
                 getBooks(); //reloads books
+                resetModal();
             }
         };
         xhr.open('POST', api, true);
@@ -140,39 +140,6 @@ const displayBooks = (books) => {
     });
 };
 
-//update books status function
-const updateBookStatus = (bookId, newStatus) => {
-    console.log(`Updating book status: Book ID=${bookId}, Status=${newStatus}`);
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            getBooks(); //reloads books
-            console.log(`Updated book status: Book ID=${bookId}`);
-        }
-    };
-
-    xhr.open('PUT', `${api}/${bookId}/status`, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    xhr.send(JSON.stringify({ book_status: newStatus }));
-}
-
-
-
-//Update Book function
-const updateBook = (id, bookData) => {
-
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            getBooks(); // Refresh after updating
-        }
-    };
-
-    xhr.open('PUT', `${api}/${id}`, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    xhr.send(JSON.stringify(bookData));
-};
-
 // Helper function to set color based on status
 const getCardColor = (status) => {
     if (status === 'reading') return 'bg-warning'; // Yellow for reading
@@ -190,6 +157,8 @@ const resetModal = () => {
     document.getElementById('book-rating').value = '';
 };
 
+//Button Code
+
 document.getElementById('add-book').addEventListener('click', (e) => {
     document.getElementById('save').addEventListener('click', (e) => {
         e.preventDefault();
@@ -197,6 +166,27 @@ document.getElementById('add-book').addEventListener('click', (e) => {
         const closeBtn = document.getElementById('close');
         closeBtn.click();
     });
+});
+
+// Filter Books by Status
+document.getElementById('filter-reading').addEventListener('click', () => {
+    const filteredBooks = books.filter(book => book.book_status === 'reading');
+
+    displayBooks(filteredBooks);
+});
+
+document.getElementById('filter-to-read').addEventListener('click', () => {
+    const filteredBooks = books.filter(book => book.book_status === 'to-read');
+    displayBooks(filteredBooks);
+});
+
+document.getElementById('filter-completed').addEventListener('click', () => {
+    const filteredBooks = books.filter(book => book.book_status === 'completed');
+    displayBooks(filteredBooks); 
+});
+
+document.getElementById('filter-all').addEventListener('click', () => {
+    displayBooks(books); 
 });
 
 
