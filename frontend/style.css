@@ -22,9 +22,9 @@
     margin-top: 20px; /* Add spacing from the top */
 }
 
-
+/* Book Card Status Colors */
 .reading {
-    background-color: #803bff; /* violet */
+    background-color: #803bff; /* Purple */
 }
 
 .to-read {
@@ -35,6 +35,7 @@
     background-color: #4caf50; /* Green */
 }
 
-body{
-    background-color:#5e3c1b ;
+body {
+    background-color: #5e3c1b;
 }
+
