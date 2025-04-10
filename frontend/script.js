@@ -14,7 +14,7 @@ const getBooks = () => {
     xhr.send();
 };
 
-//Save Book (Handling both POST and PUT methods)
+// Save Book (Handling both POST and PUT methods)
 const editBook = (id) => {
     console.log(`Editing book ID=${id}`);
 
@@ -38,7 +38,7 @@ const editBook = (id) => {
     }
 };
 
-//post book function
+// post book function
 const postBook = () => {
     const titleInput = document.getElementById('book-title');
     const title = titleInput.value;
@@ -119,7 +119,7 @@ const updateBook = (id) => {
     return true; // Indicate successful submission
 };
 
-//delete book function
+// delete book function
 const deleteBook = (id) => {
     console.log(`deleting Book ID=${id}`);
 
@@ -138,7 +138,18 @@ const deleteBook = (id) => {
     }
 };
 
-//display books function
+// to make "status" is displayed as capitalized in modal
+const formatStatus = (status) => {
+    console.log("formatStatus called:", status);
+    if (!status) return "";
+    return status
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('-');
+  };
+  
+
+// display books function
 const displayBooks = (books) => {
     const bookList = document.getElementById('book-list');
     bookList.innerHTML = ''; // clears existing content
@@ -151,7 +162,7 @@ const displayBooks = (books) => {
                 <h3 class="card-title">${book.title}</h3>
                 <p class="card-text">Author: ${book.author}</p>
                 <p class="card-text">Genre: ${book.genre}</p>
-                <p class="card-text">Status: ${book.book_status}</p>
+                <p class="card-text">Status: ${formatStatus(book.book_status)}</p>
                 <p class="card-text">Rating: ${book.rating}</p>
 
 
@@ -175,7 +186,7 @@ const getCardColor = (status) => {
     return 'bg-light'; // Default color
 };
 
-//reset modal function
+// reset modal function
 const resetModal = () => {
     document.getElementById('book-id').value = '';
     document.getElementById('book-title').value = '';
@@ -227,8 +238,43 @@ const initializeEventListeners = () => {
     });
 };
 
-//load books and initialize event listeners when the page loads
+// load books and initialize event listeners when the page loads
 (() => {
     getBooks();
     initializeEventListeners();
 })();
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("create-account-button").addEventListener("click", function () {
+      const username = document.getElementById('new-username').value.trim();
+      const password = document.getElementById('new-password').value;
+  
+      if (!username || !password) {
+        alert("Please fill in both fields.");
+        return;
+      }
+  
+      const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
+      const userExists = existingUsers.some(u => u.username === username);
+  
+      if (userExists) {
+        alert("Username already exists.");
+        return;
+      }
+  
+      const newUser = { username, password };
+      existingUsers.push(newUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+      alert("Account created!");
+  
+      const modalEl = document.getElementById('createAccountModal');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.hide();
+  
+      document.getElementById('new-username').value = '';
+      document.getElementById('new-password').value = '';
+    });
+  });
+    

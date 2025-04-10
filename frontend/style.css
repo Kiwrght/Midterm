@@ -12,30 +12,83 @@
     --bs-btn-active-border-color: #{shade-color($bd-violet, 20%)};
 }
 
-.center-container {
+/* === General Page Styles === */
+body {
+    background-color: #fffcf7; /* Off-White */
+    font-family: 'Segoe UI', sans-serif;
+    color: black;
+  }
+  
+  /* === Bookkeepr Title === */
+  .site-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 3.5rem;
+    color: #2e2e2e;
+    margin: 30px 0 20px;
     text-align: center;
-    margin-top: 20px; /* Add spacing from the top */
-}
+  }
+  
+  
+  /* === Button Styles === */
+  .button-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+  
+  .button-group button {
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+  }
+  
+  .filter-btn {
+    color: black !important;
+  }
+  
+  #add-book {
+    margin-top: 10px;
+  }
+    
 
+/* === Layout Spacing === */
+.center-container,
 .mb-3 {
-    text-align: center;
-    margin-top: 20px; /* Add spacing from the top */
+  text-align: center;
+  margin-top: 20px;
 }
 
-/* Book Card Status Colors */
+/* === Book List and Card Styles === */
+#book-list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  padding: 20px;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  text-align: center;
+  margin: 10px;
+}
+
+/* === Book Card Status Colors === */
 .reading {
-    background-color: #803bff; /* Purple */
+  background-color: #f8e3ff; /* Purple */
 }
 
 .to-read {
-    background-color: #2196f3; /* Blue */
+  background-color: #e3faff; /* Blue */
 }
 
 .completed {
-    background-color: #4caf50; /* Green */
+  background-color: #e3ffe8; /* Green */
 }
-
-body {
-    background-color: #5e3c1b;
-}
-
