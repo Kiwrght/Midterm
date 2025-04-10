@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Path
 from todo import Book, BookRequest
+from models.book import Book, BookStatus
 
 max_id: int = 0  # Variable to store the maximum ID of the book
 todo_router = APIRouter()
@@ -25,6 +26,7 @@ def add_book(book: BookRequest) -> Book:
         genre=book.genre,
         book_status=book.book_status,
         rating=book.rating,
+        isbn=None,
     )
     books_list.append(newBook)
     return newBook
