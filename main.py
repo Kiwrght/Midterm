@@ -4,6 +4,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from todo_routes import todo_router
 
+from models.my_config import MyConfig
+
 app = FastAPI(title="My Book Library")
 app.include_router(todo_router, tags=["Books"], prefix="/books")
 
@@ -16,3 +18,7 @@ async def home():
 
 
 app.mount("/", StaticFiles(directory="./frontend"), name="static")
+
+# Setting up the config file
+setting = MyConfig()
+print(setting.connection_string)
