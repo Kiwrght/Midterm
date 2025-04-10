@@ -11,7 +11,7 @@ async def init_db():
     my_config = MyConfig()
     client = AsyncIOMotorClient(my_config.connection_string)
     db = client["bookkeepr_db"]
-    await init_beanie(database=db, document_models=[Book, User, Genre, Author, Review])
+    await init_beanie(database=db, document_models=[Book, User])
 
 
 asyncio.run(init_db())
