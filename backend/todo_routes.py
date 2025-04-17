@@ -78,6 +78,7 @@ async def update_rating(book_id: int, rating: int):
 # Delete a Book from the Library
 @todo_router.delete("/{book_id}")
 async def delete_book(book_id: int):
+    db_book = Book.get(book_id)
     for i in range(len(books_list)):
         if books_list[i].id == book_id:
             books_list.pop(i)

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from todo_routes import todo_router
-from data_base import init_db
+from backend.data_base import init_db
 import asyncio
 
 from models.my_config import MyConfig
