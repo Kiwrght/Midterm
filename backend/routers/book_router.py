@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Path
-from models.book import Book, BookRequest
+from backend.models.book_model import Book, BookRequest
 
 book_router = APIRouter()
 
