@@ -67,7 +67,7 @@ async def login_for_access_token(
         authenticated = hash_password.verify_hash(form_data.password, user.password)
         if authenticated:
             # update the last login time
-            user.last_login = datetime.now()
+            user.lastlogin = datetime.now()
             await user.save()
 
             # Create access token if authentication is successful
