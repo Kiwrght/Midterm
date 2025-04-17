@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 
 from auth.jwt_auth import Token, TokenData, create_access_token, decode_jwt_token
 
-pwd_context = CryptoContext(schemes=["bcrypt"])
+pwd_context = CryptContext(schemes=["bcrypt"])
 
 class HashPassword:
     def create_hash(self, password: str):
