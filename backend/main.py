@@ -4,10 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from todo_routes import todo_router
-from backend.data_base import init_db
+from backend.db.data_base import init_db
 import asyncio
-from routers.user import user_router
-from routers.book import book_router
+from backend.routers.user import user_router
+from backend.routers.book import book_router
 from models.my_config import MyConfig
 
 
