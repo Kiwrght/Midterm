@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Document
 from enum import Enum
 
 
@@ -8,7 +8,7 @@ class BookStatus(str, Enum):
     completed = "completed"
 
 
-class Book(BaseModel):
+class Book(Document):
     id: int
     title: str
     author: str
