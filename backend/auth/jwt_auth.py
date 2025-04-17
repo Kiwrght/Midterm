@@ -33,8 +33,12 @@ def decode_jwt_token(token: str) -> TokenData | None:
         print(payload)
         username: str = payload.get("username")
         exp: int = payload.get("exp")
+
+        if username is None or exp is None:
+            print("Invalid token")
+            return None
         return TokenData(
-            username=username, exp_datetime=datetime.fromtimestamp(exp, tz=timezone.utc)
+            username=username, exp=datetime.fromtimestamp(exp, tz=timezone.utc)
         )
     except jwt.InvalidTokenError:
         print("Invalid token")

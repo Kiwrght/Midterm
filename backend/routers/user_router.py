@@ -23,6 +23,9 @@ hash_password = HashPassword()
 
 
 def get_user(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
+    if decode_jwt_token(token) is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
     print(token)
     return decode_jwt_token(token)
 
@@ -61,7 +64,7 @@ async def login_for_access_token(
     ## Authenticate user by verifying the user in the database
     user = await User.find_one({"username": form_data.username})
     if user:
-        authenticated = hash_password.verify_hash(form_data.password, ["password"])
+        authenticated = hash_password.verify_hash(form_data.password, user.password)
         if authenticated:
             # update the last login time
             user.last_login = datetime.now()
@@ -90,3 +93,23 @@ async def logout(current_user: Annotated[dict, Depends(get_user)]) -> dict:
         raise HTTPException(status_code=404, detail="User not found")
     await user.save()
     return {"message": "Logged out successfully"}
+
+
+## reset password route
+@user_router.post("/reset-password")
+async def reset_password(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+):
+    # check if user exists
+    user = await User.find_one({"username": form_data.username})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username not registered",
+        )
+
+    # Create new password with hashed password
+    hashed_password = hash_password.create_hash(form_data.password)
+    user.password = hashed_password
+    await user.save()
+    return {"message": "Password reset successfully"}
