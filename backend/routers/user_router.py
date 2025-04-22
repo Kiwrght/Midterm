@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from models.user_model import User
 
-from auth.jwt_auth import Token, TokenData, create_access_token, decode_jwt_token
+from auth.jwt_auth import LoginResult, TokenData, create_access_token, decode_jwt_token
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
@@ -40,7 +40,7 @@ async def signup(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     existing_user = await User.find_one({"username": form_data.username})
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTT,
             detail="Username already registered",
         )
 
@@ -60,7 +60,7 @@ async def signup(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 @user_router.post("/login")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
+) -> LoginResult:
     ## Authenticate user by verifying the user in the database
     user = await User.find_one({"username": form_data.username})
     if user:
@@ -74,7 +74,7 @@ async def login_for_access_token(
             access_token = create_access_token(
                 data={"username": user.username}, expires_delta=timedelta(minutes=60)
             )
-            return Token(access_token=access_token)
+            return LoginResult(access_token=access_token)
         else:
             # If password is incorrect, raise an exception
             raise HTTPException(status_code=401, detail="Invalid username or password")

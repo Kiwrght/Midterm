@@ -4,13 +4,16 @@ from pydantic import BaseModel
 from models.my_config import get_settings
 
 
-class Token(BaseModel):
+class LoginResult(BaseModel):
+    username: str
+    role: str
     access_token: str
     token_type: str = "bearer"
 
 
 class TokenData(BaseModel):
     username: str
+    role: str
     exp: datetime
 
 
@@ -32,6 +35,7 @@ def decode_jwt_token(token: str) -> TokenData | None:
         payload = jwt.decode(token, key, algorithms=[ALGORITHM])
         print(payload)
         username: str = payload.get("username")
+        role: str = payload.get("role")
         exp: int = payload.get("exp")
 
         if username is None or exp is None:

@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, status, Path
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, status, Path
+from auth.jwt_auth import TokenData
+from routers.user_router import get_user
 from models.book_model import Book, BookRequest
 
 book_router = APIRouter()
@@ -24,8 +27,20 @@ async def add_book(book: BookRequest) -> Book:
     return new_book
 
 
+# Admin only route to get all books
 @book_router.get("")
-async def get_books() -> list[Book]:
+async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[Book]:
+    if not user or not user.username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Please login.",
+        )
+    if not user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {user.username} does not have permission to access this resource.",
+        )
+    # Fetch all books from the database
     return await Book.find_all().to_list()
 
 
