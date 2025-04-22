@@ -1,9 +1,9 @@
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from models.my_config import MyConfig, get_settings
-from models.book_model import Book
-from models.user_model import User
+from backend.models.my_config import MyConfig, get_settings
+from backend.models.book_model import Book
+from backend.models.user_model import User
 
 
 async def init_db():

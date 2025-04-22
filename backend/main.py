@@ -3,10 +3,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routers.todo_routes import todo_router
-from db.data_base import init_db
-from routers.user_router import user_router
-from routers.book_router import book_router
+
+# from routers.todo_routes import todo_router
+# from db.data_base import init_db
+# from routers.user_router import user_router
+# from routers.book_router import book_router
+
+
+from backend.routers.todo_routes import todo_router
+from backend.db.data_base import init_db
+from backend.routers.user_router import user_router
+from backend.routers.book_router import book_router
 
 
 @asynccontextmanager
@@ -34,10 +41,10 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
 
 @app.get("/")
 async def home():
-    return FileResponse("../frontend/index.html")
+    return FileResponse("frontend/index.html")
 
 
 app.include_router(user_router, tags=["Users"], prefix="/users")
 app.include_router(book_router, tags=["Books"], prefix="/books")
 
-app.mount("/", StaticFiles(directory="../frontend"), name="static")
+app.mount("/", StaticFiles(directory="frontend"), name="static")

@@ -1,8 +1,8 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Path
-from auth.jwt_auth import TokenData
-from routers.user_router import get_user
-from models.book_model import Book, BookRequest
+from backend.auth.jwt_auth import TokenData
+from backend.routers.user_router import get_user
+from backend.models.book_model import Book, BookRequest
 
 book_router = APIRouter()
 
