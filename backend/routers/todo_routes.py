@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Path
-from todo import Book, BookRequest
-from backend.models.book_model import Book, BookStatus
+from models.todo import Book, BookRequest
+from models.book_model import Book, BookStatus
 
 max_id: int = 0  # Variable to store the maximum ID of the book
 todo_router = APIRouter()

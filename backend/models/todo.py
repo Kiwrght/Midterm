@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Document
+from pydantic import BaseModel
+from beanie import Document
 from enum import Enum
 
 

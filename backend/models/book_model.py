@@ -1,8 +1,9 @@
 from typing import Optional
 from beanie import Document
+from pydantic import BaseModel
 from datetime import datetime
 
-from todo import BookStatus
+from models.todo import BookStatus
 
 
 class Book(Document):
@@ -21,3 +22,16 @@ class Book(Document):
 
     class Settings:
         name = "books"  # Specify the collection name for Book documents
+
+
+class BookRequest(BaseModel):
+    title: str
+    author: str
+    genre: str
+    book_status: BookStatus = BookStatus.to_read
+    rating: int
+    userId: str  # Reference to the user who added this book
+    isbn: Optional[str] = None
+    dateStarted: Optional[datetime] = None
+    dateCompleted: Optional[datetime] = None
+    review: Optional[str] = None

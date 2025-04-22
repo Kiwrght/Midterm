@@ -6,7 +6,7 @@ class MyConfig(BaseSettings):
     connection_string: str
     secret_key: str
 
-    model_config = SettingsConfigDict(env_file="../.env")
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 @lru_cache
