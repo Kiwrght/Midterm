@@ -35,7 +35,7 @@ async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[B
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Please login.",
         )
-    if not user.role != "admin":
+    if not user.role != "AdminUser":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"User {user.username} does not have permission to access this resource.",
