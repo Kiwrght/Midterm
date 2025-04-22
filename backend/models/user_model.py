@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class User(Document):
     username: str
     email: str
-    password: str
+    password: str  # hashed password within the database
     role: str = ""  # Default role for new users
     dateJoined: datetime = datetime.now()
     lastLogin: Optional[datetime] = None
