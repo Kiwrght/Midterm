@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from backend.models.user_model import User
+from models.user_model import User, UserRequest
 
 from backend.auth.jwt_auth import (
     LoginResult,
@@ -40,20 +40,20 @@ user_router = APIRouter()
 
 # signup route
 @user_router.post("/signup")
-async def signup(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def signup(user: UserRequest) -> dict:
     # check if user already exists
-    existing_user = await User.find_one({"username": form_data.username})
+    existing_user = await User.find_one({User.username == user.username})
     if existing_user:
         raise HTTPException(
-            status_code=status.HTT,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered",
         )
 
     # Create new user with hashed password
-    hashed_password = hash_password.create_hash(form_data.password)
+    hashed_password = hash_password.create_hash(user.password)
     new_user = User(
-        username=form_data.username,
-        email=form_data.username,  # Using username as email for simplicity
+        username=user.username,
+        email=user.username,  # Using username as email for simplicity
         password=hashed_password,
     )
 
@@ -67,23 +67,32 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> LoginResult:
     ## Authenticate user by verifying the user in the database
-    user = await User.find_one({"username": form_data.username})
-    if user:
-        authenticated = hash_password.verify_hash(form_data.password, user.password)
-        if authenticated:
-            # update the last login time
-            user.lastlogin = datetime.now()
-            await user.save()
+    username = form_data.username
+    user = await User.find_one({User.username == username})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Username or Password",
+        )
 
-            # Create access token if authentication is successful
-            access_token = create_access_token(
-                data={"username": user.username}, expires_delta=timedelta(minutes=60)
-            )
-            return LoginResult(access_token=access_token)
-        else:
-            # If password is incorrect, raise an exception
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-    raise HTTPException(status_code=401, detail="Invalid username or password")
+    authenticated = hash_password.verify_hash(form_data.password, user.password)
+    if authenticated:
+        # update the last login time
+        user.lastLogin = datetime.now()
+        await user.save()
+
+        # Create access token if authentication is successful
+        access_token = create_access_token(
+            data={"username": user.username, "role": user.role},
+            expires_delta=timedelta(minutes=60),
+        )
+        return LoginResult(access_token=access_token)
+    else:
+        # If password is incorrect, raise an exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+        )
 
 
 @user_router.post("/logout")
@@ -92,11 +101,10 @@ async def logout(current_user: Annotated[dict, Depends(get_user)]) -> dict:
     # update the last logout time
     user = await User.find_one({"username": current_user["username"]})
     if user:
-        user.last_logout = datetime.now()
+        user.lastLogout = datetime.now()
         await user.save()
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    await user.save()
     return {"message": "Logged out successfully"}
 
 

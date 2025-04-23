@@ -11,6 +11,7 @@ class User(Document):
     role: str = ""  # Default role for new users
     dateJoined: datetime = datetime.now()
     lastLogin: Optional[datetime] = None
+    lastLogout: Optional[datetime] = None
 
     class Settings:
         name = "users"  # Specify the collection name for User documents
@@ -24,3 +25,10 @@ class UserRequest(BaseModel):
     username: str
     email: str
     password: str  # plain text from user input
+
+
+class UserDto(BaseModel):
+    id: str
+    username: str
+    email: str
+    role: str
