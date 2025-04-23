@@ -1,5 +1,16 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from xlwings import App
+
+App.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # you can later replace "*" with ["http://localhost:5500"] or whatever your frontend URL is
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles

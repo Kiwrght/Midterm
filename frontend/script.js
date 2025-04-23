@@ -248,6 +248,7 @@ const initializeEventListeners = () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("create-account-button").addEventListener("click", function () {
+        console.log("Create account button clicked");
       const username = document.getElementById('new-username').value.trim();
       const password = document.getElementById('new-password').value;
   
@@ -256,9 +257,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
   
-
-  
-      fetch('http://localhost:8000/users/register', {
+      const formBody = new URLSearchParams();
+      formBody.append("username", username);
+      formBody.append("password", password);
+      
+      
+      fetch('http://localhost:8000/users/signup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
