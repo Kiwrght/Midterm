@@ -35,7 +35,9 @@ def decode_jwt_token(token: str) -> TokenData | None:
         payload = jwt.decode(token, key, algorithms=[ALGORITHM])
         print(payload)
         username: str = payload.get("username")
-        role: str = payload.get("role")
+        role: str = payload.get(
+            "role", ""
+        )  ## Default to empty string if role is not present
         exp: int = payload.get("exp")
 
         if username is None or exp is None:
