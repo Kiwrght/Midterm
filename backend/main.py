@@ -4,12 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-# from routers.todo_routes import todo_router
-# from db.data_base import init_db
-# from routers.user_router import user_router
-# from routers.book_router import book_router
-
-
 from backend.routers.todo_routes import todo_router
 from backend.db.data_base import init_db
 from backend.routers.user_router import user_router

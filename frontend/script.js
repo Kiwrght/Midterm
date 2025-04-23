@@ -256,18 +256,27 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
   
-      const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
-      const userExists = existingUsers.some(u => u.username === username);
+
   
-      if (userExists) {
-        alert("Username already exists.");
-        return;
-      }
-  
-      const newUser = { username, password };
-      existingUsers.push(newUser);
-      localStorage.setItem("users", JSON.stringify(existingUsers));
-      alert("Account created!");
+      fetch('http://localhost:8000/users/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formBody
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Registration failed");
+        return res.json();
+      })
+      .then(() => {
+        alert("Account created in backend. You can now log in.");
+
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Could not create account on the server.");
+      });      
   
       const modalEl = document.getElementById('createAccountModal');
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -276,5 +285,60 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById('new-username').value = '';
       document.getElementById('new-password').value = '';
     });
-  });
-    
+
+        document.getElementById("sign-in-btn").addEventListener("click", signIn);
+    });
+
+
+
+function signIn() {
+// getting user input from login
+    console.log("Sign In button clicked");
+const username = document.getElementById('username').value.trim();
+const password = document.getElementById('password').value;
+
+// validating input
+if (!username || !password) {
+    alert("Please enter both username and password.");
+    return;
+}
+
+// formatting credentials
+const formBody = new URLSearchParams();
+formBody.append("username", username);
+formBody.append("password", password);
+
+// sending POST request to backend login route
+// calling exact route
+fetch('http://localhost:8000/users/login', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formBody
+})
+.then(res => {
+    if (!res.ok) throw new Error("Login failed");
+    return res.json();
+})
+// save token, update page
+.then(data => {
+    localStorage.setItem("access_token", data.access_token);
+    showLoggedInUser(username);
+    alert("Logged in successfully!");
+    const modal = bootstrap.Modal.getInstance(document.getElementById('signInModal'));
+    modal.hide();
+})
+.catch(async (err) => {
+    console.error("Login failed:", err);
+    const res = await err.response?.text?.();
+    console.error("Response text:", res);
+    alert("Login failed. Please check your credentials or check console for details.");
+  });  
+}
+
+// show user has logged in
+function showLoggedInUser(username) {
+const userDisplay = document.getElementById('logged-in-user');
+userDisplay.textContent = `Logged in as ${username}`;
+}
