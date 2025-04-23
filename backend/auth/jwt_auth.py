@@ -37,14 +37,17 @@ def decode_jwt_token(token: str) -> TokenData | None:
         username: str = payload.get("username")
         role: str = payload.get(
             "role", ""
-        )  ## Default to empty string if role is not present
+        )  # Default to empty string if role is not present
         exp: int = payload.get("exp")
 
         if username is None or exp is None:
             print("Invalid token")
             return None
         return TokenData(
-            username=username, exp=datetime.fromtimestamp(exp, tz=timezone.utc)
+            username=username,
+            role=role,
+            exp=datetime.fromtimestamp(exp, tz=timezone.utc),
         )
     except jwt.InvalidTokenError:
         print("Invalid token")
+        return None
