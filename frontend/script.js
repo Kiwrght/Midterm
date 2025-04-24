@@ -249,49 +249,68 @@ const initializeEventListeners = () => {
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("create-account-button").addEventListener("click", function () {
         console.log("Create account button clicked");
+
+        // getting user input from signup
       const username = document.getElementById('new-username').value.trim();
       const password = document.getElementById('new-password').value;
-  
+        
+      // validating input
       if (!username || !password) {
         alert("Please fill in both fields.");
         return;
       }
   
-      const formBody = new URLSearchParams();
-      formBody.append("username", username);
-      formBody.append("password", password);
+    //   const formBody = new URLSearchParams();
+    //   formBody.append("username", username);
+    //   formBody.append("password", password);
+
       
-      
+      // create account
       fetch('http://localhost:8000/users/signup', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
           },
-          body: formBody
+          body: JSON.stringify({
+            username: username,
+            password: password,
+          })
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Registration failed");
+      .then(async res => {
+        if (!res.ok){
+        return res.json().then(data => {
+            throw new Error(data.detail || "Registration failed");
+          } );
+        }
         return res.json();
       })
       .then(() => {
-        alert("Account created in backend. You can now log in.");
+        if(res.ok){
+        alert("Account created successfully! You can now log in.");
 
-      })
+        alert("Button clicked, trying to close modal");
+        //Hide the modal after successful account creation
+        const modalEl = document.getElementById('createAccountModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.hide();
+
+        //clear input fields
+        document.getElementById('new-username').value = '';
+        document.getElementById('new-password').value = '';
+        }else {
+            return response.json().then((data) => {
+              throw new Error(data.detail || "Failed to create account.");
+            });
+        }
+    })
       .catch(err => {
-        console.error(err);
-        alert("Could not create account on the server.");
+        console.error("Registration error: ",err);
+        alert(err.message || "Could not create account on the server.");
       });      
-  
-      const modalEl = document.getElementById('createAccountModal');
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      modal.hide();
-  
-      document.getElementById('new-username').value = '';
-      document.getElementById('new-password').value = '';
     });
 
-        document.getElementById("sign-in-btn").addEventListener("click", signIn);
-    });
+    // document.getElementById("sign-in-btn").addEventListener("click", signIn);
+});
 
 
 
@@ -322,7 +341,11 @@ fetch('http://localhost:8000/users/login', {
       body: formBody
 })
 .then(res => {
-    if (!res.ok) throw new Error("Login failed");
+    if (!res.ok){
+    return res.json().then(data => {
+        throw new Error(data.detail || "Login failed");
+      });
+    }
     return res.json();
 })
 // save token, update page
@@ -330,15 +353,42 @@ fetch('http://localhost:8000/users/login', {
     localStorage.setItem("access_token", data.access_token);
     showLoggedInUser(username);
     alert("Logged in successfully!");
+
+    // Hide the modal after successful login
     const modal = bootstrap.Modal.getInstance(document.getElementById('signInModal'));
     modal.hide();
 })
-.catch(async (err) => {
-    console.error("Login failed:", err);
-    const res = await err.response?.text?.();
-    console.error("Response text:", res);
-    alert("Login failed. Please check your credentials or check console for details.");
-  });  
+// .catch(async (err) => {
+//     console.error("Login failed:", err);
+//     const res = await err.response?.text?.();
+//     console.error("Response text:", res);
+//     alert("Login failed. Please check your credentials or check console for details.");
+//   });  
+
+// Trying something 
+.catch(err => {
+    console.error("Logout failed:", err);
+    alert("Logout failed. Please try again.");
+});
+}
+
+function getBooks(){
+    const token = localStorage.getItem("access_token");
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            books = JSON.parse(xhr.responseText);
+            displayBooks(books);
+        } else if (xhr.readyState == 401) {
+            // Unauthorized - redirect to login
+            alert("Please log in to view books");
+        }
+    }; 
+    xhr.open('GET', api, true);
+    if(token){
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+    xhr.send();
 }
 
 // show user has logged in
