@@ -57,7 +57,7 @@ async def signup(user: UserRequest) -> dict:
         password=hashed_password,
     )
 
-    await new_user.insert()
+    await new_user.create()
     return {"message": "User created successfully"}
 
 

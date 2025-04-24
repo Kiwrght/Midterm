@@ -1,4 +1,5 @@
 from typing import Annotated
+from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends, HTTPException, status, Path
 from backend.auth.jwt_auth import TokenData
 from backend.routers.user_router import get_user
@@ -11,7 +12,9 @@ max_id: int = 0  # Variable to store the maximum ID of the book
 
 
 @book_router.post("", status_code=status.HTTP_201_CREATED)
-async def add_book(book: BookRequest) -> Book:
+async def add_book(
+    book: BookRequest, user: Annotated[TokenData, Depends(get_user)]
+) -> Book:
     global max_id
     max_id += 1
     new_book = Book(
@@ -45,7 +48,9 @@ async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[B
 
 
 @book_router.get("/{book_id}")
-async def get_book_by_id(book_id: int = Path(..., title="default")) -> Book:
+async def get_book_by_id(
+    book_id: PydanticObjectId, user: Annotated[TokenData, Depends(get_user)]
+) -> Book:
     book = Book.get(book_id)
     if book:
         return book
@@ -71,11 +76,20 @@ async def update_book(book_id: int, book: BookRequest) -> dict:
 
 
 @book_router.delete("/{book_id}")
-async def delete_book(book_id: int) -> dict:
-    for x in range(len(books_list)):
-        book = books_list[x]
-        if book.id == book_id:
-            books_list.pop(x)
-            return {"message": f"Book with ID={book_id} has deleted successfully"}
+async def delete_book(
+    book_id: PydanticObjectId, user: Annotated[TokenData, Depends(get_user)]
+) -> dict:
+    if user.role != "AdminUser":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {user.username} does not have permission to access this resource.",
+        )
 
-    return {"message": f"The todo with ID={book_id} is not found."}
+    book = await Book.get(book_id)
+    if book:
+        await book.delete()  # Delete the book from the database
+        return {"message": "movie deleted"}
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"The movie with ID={book_id} is not found.",
+    )

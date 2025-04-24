@@ -4,7 +4,9 @@ from xlwings import App
 
 App.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # you can later replace "*" with ["http://localhost:5500"] or whatever your frontend URL is
+    allow_origins=[
+        "*"
+    ],  # you can later replace "*" with ["http://localhost:5500"] or whatever your frontend URL is
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,12 +35,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="BookKeepr", version="0.1.0", lifespan=lifespan)
-
-
-@app.on_event("startup")
-async def startup_event():
-    await init_db()
-
 
 app.include_router(todo_router, tags=["Books"], prefix="/books")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
