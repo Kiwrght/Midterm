@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import jwt
 from pydantic import BaseModel
-from backend.models.my_config import get_settings
+from models.my_config import get_settings
 
 
 class LoginResult(BaseModel):

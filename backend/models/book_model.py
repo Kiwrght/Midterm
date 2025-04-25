@@ -3,7 +3,7 @@ from beanie import Document
 from pydantic import BaseModel
 from datetime import datetime
 
-from backend.models.todo import BookStatus
+from models.todo import BookStatus
 
 
 class Book(Document):

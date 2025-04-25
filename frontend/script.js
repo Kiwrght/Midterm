@@ -1,18 +1,36 @@
 const api = 'http://localhost:8000/books';
 let books = [];
 
-const getBooks = () => {
+// const getBooks = () => {
+//     const xhr = new XMLHttpRequest();
+//     xhr.onreadystatechange = () => {
+//       if (xhr.readyState == 4 && xhr.status == 200) {
+//         books = JSON.parse(xhr.responseText);
+//         displayBooks(books);
+//       }
+//     };
+  
+//     xhr.open('GET', api, true);
+//     xhr.send();
+// };
+function getBooks(){
+    const token = localStorage.getItem("access_token");
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
-      if (xhr.readyState == 4 && xhr.status == 200) {
-        books = JSON.parse(xhr.responseText);
-        displayBooks(books);
-      }
-    };
-  
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            books = JSON.parse(xhr.responseText);
+            displayBooks(books);
+        } else if (xhr.readyState == 401) {
+            // Unauthorized - redirect to login
+            alert("Please log in to view books");
+        }
+    }; 
     xhr.open('GET', api, true);
+    if(token){
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
     xhr.send();
-};
+}
 
 // Save Book (Handling both POST and PUT methods)
 const editBook = (id) => {
@@ -252,18 +270,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // getting user input from signup
       const username = document.getElementById('new-username').value.trim();
+      const email = document.getElementById('new-email').value.trim();
       const password = document.getElementById('new-password').value;
         
       // validating input
-      if (!username || !password) {
-        alert("Please fill in both fields.");
+      if (!username || !password || !email) {
+        alert("Please fill in all fields.");
         return;
       }
   
     //   const formBody = new URLSearchParams();
     //   formBody.append("username", username);
     //   formBody.append("password", password);
-
+    
+    // Debugging output of user input
+    console.log("Sending request payload:", JSON.stringify({
+        username: username,
+        email: email,
+        password: password,
+    }));
       
       // create account
       fetch('http://localhost:8000/users/signup', {
@@ -273,6 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           body: JSON.stringify({
             username: username,
+            email: email,
             password: password,
           })
       })
@@ -284,10 +310,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return res.json();
       })
-      .then(() => {
-        if(res.ok){
+      .then(data => {
+        
         alert("Account created successfully! You can now log in.");
-
         alert("Button clicked, trying to close modal");
         //Hide the modal after successful account creation
         const modalEl = document.getElementById('createAccountModal');
@@ -297,11 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
         //clear input fields
         document.getElementById('new-username').value = '';
         document.getElementById('new-password').value = '';
-        }else {
-            return response.json().then((data) => {
-              throw new Error(data.detail || "Failed to create account.");
-            });
-        }
     })
       .catch(err => {
         console.error("Registration error: ",err);
@@ -313,86 +333,92 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("sign-in-btn").addEventListener("click", function () {
+        
+        // getting user input from login
+        console.log("Sign In button clicked");
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
 
-function signIn() {
-// getting user input from login
-    console.log("Sign In button clicked");
-const username = document.getElementById('username').value.trim();
-const password = document.getElementById('password').value;
-
-// validating input
-if (!username || !password) {
-    alert("Please enter both username and password.");
-    return;
-}
-
-// formatting credentials
-const formBody = new URLSearchParams();
-formBody.append("username", username);
-formBody.append("password", password);
-
-// sending POST request to backend login route
-// calling exact route
-fetch('http://localhost:8000/users/login', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formBody
-})
-.then(res => {
-    if (!res.ok){
-    return res.json().then(data => {
-        throw new Error(data.detail || "Login failed");
-      });
-    }
-    return res.json();
-})
-// save token, update page
-.then(data => {
-    localStorage.setItem("access_token", data.access_token);
-    showLoggedInUser(username);
-    alert("Logged in successfully!");
-
-    // Hide the modal after successful login
-    const modal = bootstrap.Modal.getInstance(document.getElementById('signInModal'));
-    modal.hide();
-})
-// .catch(async (err) => {
-//     console.error("Login failed:", err);
-//     const res = await err.response?.text?.();
-//     console.error("Response text:", res);
-//     alert("Login failed. Please check your credentials or check console for details.");
-//   });  
-
-// Trying something 
-.catch(err => {
-    console.error("Logout failed:", err);
-    alert("Logout failed. Please try again.");
-});
-}
-
-function getBooks(){
-    const token = localStorage.getItem("access_token");
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            books = JSON.parse(xhr.responseText);
-            displayBooks(books);
-        } else if (xhr.readyState == 401) {
-            // Unauthorized - redirect to login
-            alert("Please log in to view books");
+        // validating input
+        if (!username || !password) {
+            alert("Please enter both username and password.");
+            return;
         }
-    }; 
-    xhr.open('GET', api, true);
-    if(token){
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    }
-    xhr.send();
-}
 
-// show user has logged in
-function showLoggedInUser(username) {
-const userDisplay = document.getElementById('logged-in-user');
-userDisplay.textContent = `Logged in as ${username}`;
-}
+        // formatting credentials
+        const formBody = new URLSearchParams();
+        formBody.append("username", username);
+        formBody.append("password", password);
+
+        // sending POST request to backend login route
+        // calling exact route
+        console.log("Sending login request with:", JSON.stringify({ username, password }));
+        fetch('http://localhost:8000/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formBody,
+        })
+    
+        .then(async res => {
+            if (!res.ok){
+            const data = await res.json();
+                throw new Error(data.detail || "Login failed");
+            }
+            return res.json();
+        })
+        // save token, update page
+        .then(data => {
+            localStorage.setItem("access_token", data.access_token);
+            showLoggedInUser(username);
+            alert("Logged in successfully!");
+
+            // Hide the modal after successful login
+            const modalEl = document.getElementById('signInModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.hide();
+        
+        })
+        // .catch(async (err) => {
+        //     console.error("Login failed:", err);
+        //     const res = await err.response?.text?.();
+        //     console.error("Response text:", res);
+        //     alert("Login failed. Please check your credentials or check console for details.");
+        //   });  
+
+        // Trying something 
+        .catch(err => {
+            console.error("Logout failed:", err);
+            alert("Logout failed. Please try again.");
+        });
+
+        // show user has logged in
+        function showLoggedInUser(username) {
+        const userDisplay = document.getElementById('logged-in-user');
+        userDisplay.textContent = `Logged in as ${username}`;
+        }        
+    });
+});
+
+
+// Logout function
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("sign-out-btn").addEventListener("click", function () {
+
+        console.log("Logout button clicked");
+
+        // Clear the token from local storage
+        localStorage.removeItem("access_token");
+
+        // Update the UI to show the user is logged out
+        const userDisplay = document.getElementById('logged-in-user');
+        userDisplay.textContent = 'Logged out';
+
+        // Optionally, you can redirect to a login page or refresh the current page
+        window.location.reload(); // Reloads the page to reflect changes
+
+    });
+});
+
+

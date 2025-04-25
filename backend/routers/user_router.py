@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from ..models.user_model import User, UserRequest
+from models.user_model import User, UserRequest
 
-from backend.auth.jwt_auth import (
+from auth.jwt_auth import (
     LoginResult,
     TokenData,
     create_access_token,
@@ -28,6 +28,8 @@ hash_password = HashPassword()
 
 
 def get_user(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
+
+    print(f"Received token: {token}")  # Debugging statement
     if decode_jwt_token(token) is None:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -42,7 +44,7 @@ user_router = APIRouter()
 @user_router.post("/signup")
 async def signup(user: UserRequest) -> dict:
     # check if user already exists
-    existing_user = await User.find_one({User.username == user.username})
+    existing_user = await User.find_one({"username": user.username})
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,7 +55,7 @@ async def signup(user: UserRequest) -> dict:
     hashed_password = hash_password.create_hash(user.password)
     new_user = User(
         username=user.username,
-        email=user.username,  # Using username as email for simplicity
+        email=user.email,
         password=hashed_password,
     )
 
@@ -68,25 +70,31 @@ async def login_for_access_token(
 ) -> LoginResult:
     ## Authenticate user by verifying the user in the database
     username = form_data.username
-    user = await User.find_one({User.username == username})
-    if not user:
+    existing_user = await User.find_one({"username": username})
+    if not existing_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Username or Password",
         )
 
-    authenticated = hash_password.verify_hash(form_data.password, user.password)
+    authenticated = hash_password.verify_hash(
+        form_data.password, existing_user.password
+    )
     if authenticated:
         # update the last login time
-        user.lastLogin = datetime.now()
-        await user.save()
+        existing_user.lastLogin = datetime.now()
+        await existing_user.save()
 
         # Create access token if authentication is successful
         access_token = create_access_token(
-            data={"username": user.username, "role": user.role},
+            data={"username": existing_user.username, "role": existing_user.role},
             expires_delta=timedelta(minutes=60),
         )
-        return LoginResult(access_token=access_token)
+        return LoginResult(
+            access_token=access_token,
+            username=existing_user.username,
+            role=existing_user.role,
+        )
     else:
         # If password is incorrect, raise an exception
         raise HTTPException(
@@ -97,6 +105,7 @@ async def login_for_access_token(
 
 @user_router.post("/logout")
 async def logout(current_user: Annotated[dict, Depends(get_user)]) -> dict:
+    print(f"Token received: {current_user}")  # Debugging statement
     # Invalidate the token by removing it from the database or marking it as invalid
     # update the last logout time
     user = await User.find_one({"username": current_user["username"]})
