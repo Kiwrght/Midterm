@@ -1,28 +1,42 @@
-# Midterm: BookShelf App
-This project builds a BookShelf App using Fast API, Uvicorn, and Pydantic. The bookshelf initially displays the buttons to add and filter cards based on their reading status. The app allows a user to add, edit, and delete cards containing book information such as Title, Author, Genre, user's rating, and the user's reading status on the book. 
+# Assignment 4: User Login
 
-## Files
-### Front End
+## Bookkeepr App
+This project extends the mid-term Bookkeepr App by integrating MongoDB as a persistent database and implementing a user login feature. Instead of storing book and user information in memory, the app now securely stores data in a real MongoDB database.
+
+
+## Overview
+- ### Database integration
+Migrated all book and user data from in-memory storage to MongoDB Atlas using FastAPI and Beanie ODM.
+
+- ### User Authentication 
+Added a user login system using JWT (JSON Web Tokens) for authentication. Users can register and securely log in to manage their books.
+
+
+## File Structure
+- ### Front End
 ```index.html```  , ```script.js``` , ```style.css``` : Used to style the app using HTML, JavaScript, and CSS.
 
-### Back End
-```main.py``` , ```todo.py``` , ```todo_routes.py``` : Uses Fast API and python.
+Bootstrap5 and custom CSS were used to build the design and create enhancements in the app.
 
-### Styling
-Bootstrap5 was used to make specific details in the app.
+- ### Back End
+```main.py``` , ```todo.py``` , ```todo_routes.py``` , ```jwt_auth.py``` , ```data_base.py``` : Uses Fast API and python.
 
-### Data Models 
-Data models used within the app included Pydantic for data validation.
+Data models in this app are built with Pydantic for request validation and Beanie for MongoDB document modeling. This allows structured data validation and direct interaction with the MongoDB database.
+
 
 ## Features
-Features include 
-Book management: adding, editing, and deleting books within the collection. 
-Filtering: Ability to filter books based on reading status.
-Rating system: User can rate a book based on a scale of 1-5
-Color Coding: Visual status indication with different card colors based on the user's reading status.
+- Book management: Adding, editing, and deleting books within the collection.
+- Filtering: Ability to filter books based on reading status.
+- Rating system: Rate a book based on a scale of 1–5.
+- Color coding: Visual status indication with different card colors based on the user's reading status.
+
 
 ## Acknowledgements
-I'd like to acknowledge Professor Changhui Xu and Teaching Assistant Maaz Bin Musa for assistance on this project. As well as FastAPI for the backend framework and Bootstrap for front-end Styling.
+We would like to acknowledge Professor Changhui Xu and Teaching Assistant Maaz Bin Musa for assistance on this project. As well as FastAPI for the backend framework, MongoDB for the database, and Bootstrap for front-end Styling.
+
+
+
+
 
 
 
