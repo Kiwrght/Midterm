@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from pydantic import BaseModel
 from models.my_config import get_settings
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 
 
 class LoginResult(BaseModel):
@@ -33,7 +34,7 @@ def decode_jwt_token(token: str) -> TokenData | None:
     try:
         key = get_settings().secret_key
         payload = jwt.decode(token, key, algorithms=[ALGORITHM])
-        print(payload)
+        print("Decoded payload:", payload)
         username: str = payload.get("username")
         role: str = payload.get(
             "role", ""
@@ -48,6 +49,11 @@ def decode_jwt_token(token: str) -> TokenData | None:
             role=role,
             exp=datetime.fromtimestamp(exp, tz=timezone.utc),
         )
-    except jwt.InvalidTokenError:
+
+    # except ExpiredSignatureError:
+    #     print("Token has expired")
+    #     return None
+
+    except InvalidTokenError:
         print("Invalid token")
         return None

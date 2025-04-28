@@ -30,11 +30,12 @@ hash_password = HashPassword()
 def get_user(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
 
     print(f"Received token: {token}")  # Debugging statement
-    if decode_jwt_token(token) is None:
+    user_data = decode_jwt_token(token)
+    if user_data is None:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    print(token)
-    return decode_jwt_token(token)
+    print(f"Authenticated user: {user_data}")
+    return user_data
 
 
 user_router = APIRouter()
@@ -105,15 +106,16 @@ async def login_for_access_token(
 
 @user_router.post("/logout")
 async def logout(current_user: Annotated[dict, Depends(get_user)]) -> dict:
-    print(f"Token received: {current_user}")  # Debugging statement
+    print(f"Logging out user: {current_user}")  # Debugging statement
+
     # Invalidate the token by removing it from the database or marking it as invalid
     # update the last logout time
     user = await User.find_one({"username": current_user["username"]})
-    if user:
-        user.lastLogout = datetime.now()
-        await user.save()
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+
+    print(f"Found user: {user.username}")
+    user.lastLogout = datetime.now()
+    await user.save()
+
     return {"message": "Logged out successfully"}
 
 

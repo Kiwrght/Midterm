@@ -30,7 +30,7 @@ class BookRequest(BaseModel):
     genre: str
     book_status: BookStatus = BookStatus.to_read
     rating: int
-    userId: str  # Reference to the user who added this book
+
     isbn: Optional[str] = None
     dateStarted: Optional[datetime] = None
     dateCompleted: Optional[datetime] = None

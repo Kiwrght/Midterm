@@ -15,104 +15,74 @@ let books = [];
 // };
 function getBooks(){
     const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("You need to log in before accessing books.");
+        return;
+    }
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            books = JSON.parse(xhr.responseText);
-            displayBooks(books);
-        } else if (xhr.readyState == 401) {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200){
+                const books = JSON.parse(xhr.responseText);
+                displayBooks(books);
+            }
+        } else if (xhr.status == 401) {
             // Unauthorized - redirect to login
             alert("Please log in to view books");
+        }else{
+            console.error(`Error fetching books: ${xhr.status} ${xhr.statusText}`);
         }
     }; 
-    xhr.open('GET', api, true);
+    xhr.open('GET', `${api}/my-books`, true);
     if(token){
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     }
     xhr.send();
 }
 
-// Save Book (Handling both POST and PUT methods)
-const editBook = (id) => {
-    console.log(`Editing book ID=${id}`);
+// // Opens book modal for editing (Handling both POST and PUT methods)
+// const editBook = (id) => {
+//     console.log(`Editing book ID=${id}`);
 
-    // Find the book from the list
-    const book = books.find((book) => book.id === id);
+//     // Find the book from the list
+//     const book = books.find((book) => book._id === id);
 
-    if (book) {
-        // Populate modal with book data
-        document.getElementById('book-title').value = book.title;
-        document.getElementById('book-author').value = book.author;
-        document.getElementById('book-genre').value = book.genre;
-        document.getElementById('book-status').value = book.book_status;
-        document.getElementById('book-rating').value = book.rating;
+//     if (book) {
+//         // Populate modal with book data
+//         document.getElementById('book-title').value = book.title;
+//         document.getElementById('book-author').value = book.author;
+//         document.getElementById('book-genre').value = book.genre;
+//         document.getElementById('book-status').value = book.book_status;
+//         document.getElementById('book-rating').value = book.rating;
         
-        // Store the book ID in the hidden input
-        document.getElementById('book-id').value = id;
-
-        // Open the modal
-        const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-        modal.show();
-    }
-};
+//         // Store the book ID in the hidden input
+//         document.getElementById('book-id').value = id;
+//         console.log("Updating book ID:", document.getElementById('book-id').value);
+//         // Open the modal
+//         const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+//         modal.show();
+//     }
+// };
 
 // post book function
 const postBook = () => {
-    const titleInput = document.getElementById('book-title');
-    const title = titleInput.value;
-    const authorInput = document.getElementById('book-author');
-    const author = authorInput.value;
-    const genreInput = document.getElementById('book-genre');
-    const genre = genreInput.value;
-    const book_statusInput = document.getElementById('book-status');
-    const book_status = book_statusInput.value;
-    const ratingInput = document.getElementById('book-rating');
-    const rating = parseInt(ratingInput.value);
-    
-    // Improved validation with custom error display
-    let errorMessage = "";
-    if (!title) errorMessage = "Please enter a book title.";
-    else if (!author) errorMessage = "Please enter an author name.";
-    else if (!genre) errorMessage = "Please enter a genre.";
-    else if (!rating) errorMessage = "Please enter a rating.";
-    else if (rating < 1 || rating > 5) errorMessage = "Rating must be between 1 and 5.";
-    
-    if (errorMessage) {
-        alert(errorMessage);
-        return false; // Prevent form submission
-    }
-    
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 201) {
-            getBooks(); // Reload books
-            resetModal();
-            const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
-            modal.hide(); // Close modal after saving
-        }
-    };
-    xhr.open('POST', api, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
-    
-    return true; // Indicate successful submission
-};
-
-// Update existing book
-const updateBook = (id) => {
-    const title = document.getElementById('book-title').value;
-    const author = document.getElementById('book-author').value;
-    const genre = document.getElementById('book-genre').value;
+    const title = document.getElementById('book-title').value.trim();
+    const author = document.getElementById('book-author').value.trim();
+    const genre = document.getElementById('book-genre').value.trim();
     const book_status = document.getElementById('book-status').value;
     const rating = parseInt(document.getElementById('book-rating').value);
     
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("You need to log in before adding a book.");
+        return false;
+    }
     // Improved validation with custom error display
     let errorMessage = "";
     if (!title) errorMessage = "Please enter a book title.";
     else if (!author) errorMessage = "Please enter an author name.";
     else if (!genre) errorMessage = "Please enter a genre.";
-    else if (!rating) errorMessage = "Please enter a rating.";
-    else if (rating < 0 || rating > 5) errorMessage = "Rating must be between 0 and 5.";
+    else if (isNaN(rating) || rating < 1 || rating > 5) errorMessage = "Please enter a rating between 1 and 5.";
     
     if (errorMessage) {
         alert(errorMessage);
@@ -120,21 +90,137 @@ const updateBook = (id) => {
     }
     
     const bookData = { title, author, genre, book_status, rating };
+
+    fetch('http://localhost:8000/books/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization':  `Bearer ${localStorage.getItem("access_token")}`
+        },
+        body: JSON.stringify(bookData)
+    })
+    .then(response => {
+        console.log("Response Status:", response.status);
+        console.log("Response Headers:", response.headers);
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
     
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            getBooks(); // Reload books after updating
+        return response.json();
+    })
+    .then(data => {
+        alert("Book added successfully!");
+        getBooks(); // Reload books
+        resetModal();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+        modal.hide(); // Close modal after saving
+    })
+    .catch(error => {
+        console.error('Error Adding Book:', error);
+        alert(`Error adding book: ${error.message}`);
+    });
+
+
+    // const xhr = new XMLHttpRequest();
+    // xhr.onreadystatechange = () => {
+    //     if (xhr.readyState === 4 && xhr.status === 201) {
+    //         getBooks(); // Reload books
+    //         resetModal();
+    //         const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+    //         modal.hide(); // Close modal after saving
+    //     }
+    // };
+    // xhr.open('POST', api, true);
+    // xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    // xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem("access_token")}`);
+    // xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
+    
+    return true; // Indicate successful submission
+};
+
+// Update existing book
+const updateBook = (id) => {
+    console.log(`Editing book ID=${id}`);
+
+    //Find the book in the list
+    const book = books.find((book) => book.id === id);
+    if (!book) {
+        console.error(`Book with ID ${id} not found`);
+        return false; // Book not found
+    }
+
+    // Populate modal with book data
+    // this sets the values in the modal inputs to the book data
+    document.getElementById('book-title').value = book.title;
+    document.getElementById('book-author').value = book.author;
+    document.getElementById('book-genre').value = book.genre;
+    document.getElementById('book-status').value = book.book_status;
+    document.getElementById('book-rating').value = book.rating;
+    document.getElementById('book-id').value = id;
+
+    // Open the modal
+    const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+    modal.show();
+
+    // Adding event listener for save button
+    document.getElementById('save-btn').addEventListener('click', (e) => {
+        const updatedBook = {
+            title: document.getElementById('book-title').value.trim(),
+            author: document.getElementById('book-author').value.trim(),
+            genre: document.getElementById('book-genre').value.trim(),  
+            book_status: document.getElementById('book-status').value,
+            rating: parseInt(document.getElementById('book-rating').value)  
+
+        };
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            alert("You need to log in before updating a book.");
+            return false;
+        }
+
+    
+        //Validating data before sending to backend
+        let errorMessage = "";
+        if (!updatedBook.title) errorMessage = "Please enter a book title.";
+        else if (!updatedBook.author) errorMessage = "Please enter an author name.";
+        else if (!updatedBook.genre) errorMessage = "Please enter a genre.";
+        else if (!updatedBook.rating) errorMessage = "Please enter a rating.";
+        else if (!updatedBook.rating < 1 || updatedBook.rating > 5) errorMessage = "Rating must be between 0 and 5.";
+        
+        if (errorMessage) {
+            alert(errorMessage);
+            return false; // Prevent form submission
+        }
+        
+        // Send PUT request to update the book
+       fetch(`http://localhost:8000/books/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(updatedBook)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(error => {
+                    throw new Error(error.detail || "Failed to update book");});
+            }
+            return response.json();
+        })
+        .then(() => {
+            alert("Book updated successfully!");
+            getBooks(); // Reload books
             resetModal();
             const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
             modal.hide(); // Close modal after saving
-        }
-    };
-    xhr.open('PUT', `${api}/${id}`, true);
-    xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    xhr.send(JSON.stringify(bookData));
-    
-    return true; // Indicate successful submission
+        })
+        .catch(error => {
+            console.error('Error updating book:', error);
+            alert(`Error updating book: ${error.message}`);
+        });
+    }, {once: true });// Ensures the event listener is removed after first use
 };
 
 // delete book function
@@ -164,8 +250,8 @@ const formatStatus = (status) => {
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join('-');
-  };
-  
+};
+
 
 // display books function
 const displayBooks = (books) => {
@@ -323,13 +409,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('new-username').value = '';
         document.getElementById('new-password').value = '';
     })
-      .catch(err => {
-        console.error("Registration error: ",err);
-        alert(err.message || "Could not create account on the server.");
+      .catch(error => {
+        console.error("Registration error: ",error);
+        alert(error.message || "Could not create account on the server.");
       });      
     });
 
-    // document.getElementById("sign-in-btn").addEventListener("click", signIn);
+
 });
 
 
@@ -378,18 +464,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const modalEl = document.getElementById('signInModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.hide();
+
+            //make the sign out button visible
+            document.getElementById("sign-out-btn").style.display = "block";
+            
         
         })
-        // .catch(async (err) => {
-        //     console.error("Login failed:", err);
-        //     const res = await err.response?.text?.();
-        //     console.error("Response text:", res);
-        //     alert("Login failed. Please check your credentials or check console for details.");
-        //   });  
+  
 
         // Trying something 
-        .catch(err => {
-            console.error("Logout failed:", err);
+        .catch(error => {
+            console.error("Logout failed:", error);
             alert("Logout failed. Please try again.");
         });
 
@@ -397,6 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
         function showLoggedInUser(username) {
         const userDisplay = document.getElementById('logged-in-user');
         userDisplay.textContent = `Logged in as ${username}`;
+        
         }        
     });
 });
@@ -404,12 +490,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Logout function
 document.addEventListener("DOMContentLoaded", () => {
+    const signOutBtn = document.getElementById("sign-out-btn");
+    // Check if the user is logged in and show the sign-out button accordingly
+    if (localStorage.getItem("access_token")) {
+        signOutBtn.style.display = "block";
+    } else {
+        signOutBtn.style.display = "none";
+    }
+
+
     document.getElementById("sign-out-btn").addEventListener("click", function () {
 
         console.log("Logout button clicked");
 
         // Clear the token from local storage
         localStorage.removeItem("access_token");
+        document.getElementById("sign-out-btn").style.display = "none";
+
 
         // Update the UI to show the user is logged out
         const userDisplay = document.getElementById('logged-in-user');
@@ -417,6 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Optionally, you can redirect to a login page or refresh the current page
         window.location.reload(); // Reloads the page to reflect changes
+
 
     });
 });

@@ -30,9 +30,15 @@ app.include_router(book_router, tags=["Books"], prefix="/books")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    # allow_credentials=True,
-    allow_methods=["*"],
-    # allow_headers=["*"],
+    allow_credentials=True,
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+    ],  # Ensure OPTIONS is included
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
