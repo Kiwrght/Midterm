@@ -1,10 +1,14 @@
 from datetime import datetime
 from typing import Annotated
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, HTTPException, status, Path
+from fastapi import APIRouter, Depends, HTTPException, requests, status, Path
 from auth.jwt_auth import TokenData
 from routers.user_router import get_user
 from models.book_model import Book, BookRequest
+
+
+# The Open Library API URL for fetching book details
+OPEN_LIBRARY_URL = "https://openlibrary.org/api/books"
 
 book_router = APIRouter()
 
@@ -34,6 +38,24 @@ async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[B
         )
     # Fetch all books from the database
     return await Book.find_all().to_list()
+
+
+# ISBN -API
+@book_router.get("/isbn/{isbn}")
+async def get_book_by_isbn(isbn: str) -> Book:
+    url = f"{OPEN_LIBRARY_URL}?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if f"ISBN:{isbn}" in data:
+            return data[f"ISBN:{isbn}"]
+        else:
+            raise HTTPException(status_code=404, detail="Book not found")
+    else:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail="Error fetching data from Open Library",
+        )
 
 
 @book_router.get("/my-books")
