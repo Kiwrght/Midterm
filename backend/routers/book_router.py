@@ -1,10 +1,20 @@
 from datetime import datetime
 from typing import Annotated
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, HTTPException, requests, status, Path
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    requests,
+    status,
+    Path,
+)
 from auth.jwt_auth import TokenData
 from routers.user_router import get_user
 from models.book_model import Book, BookRequest
+import xml.etree.ElementTree as ET
 
 
 # The Open Library API URL for fetching book details
@@ -59,7 +69,9 @@ async def get_book_by_isbn(isbn: str) -> Book:
 
 
 @book_router.get("/my-books")
-async def get_book_by_id(user: Annotated[TokenData, Depends(get_user)]) -> list[Book]:
+async def get_all_user_books(
+    user: Annotated[TokenData, Depends(get_user)],
+) -> list[Book]:
 
     # Query the database for the book with the given ID
     books = await Book.find(Book.userId == user.username).to_list()
@@ -72,35 +84,125 @@ async def get_book_by_id(user: Annotated[TokenData, Depends(get_user)]) -> list[
         )
 
 
+@book_router.get("/{book_id}")
+async def get_book_by_id(
+    book_id: PydanticObjectId, user: Annotated[TokenData, Depends(get_user)]
+) -> Response:
+    print(f"Received request for book ID: {book_id}")
+
+    book = await Book.find_one(Book.id == book_id, Book.userId == user.username)
+
+    if not book:
+        print(
+            f"Book ID {book_id} not found or doesn't belong to the user!"
+        )  # ✅ Debugging
+        return Response(
+            content="<error>Book not found</error>",
+            media_type="application/xml",
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
+    xml_response = f"""
+    <book>
+        <title>{book.title}</title>
+        <author>{book.author}</author>
+        <genre>{book.genre}</genre>
+        <status>{book.book_status}</status>
+        <rating>{book.rating}</rating>
+    </book>
+    """
+    return Response(content=xml_response, media_type="application/xml")
+
+
 @book_router.put("/{book_id}")
 async def update_book(
-    book_id: int, book: BookRequest, user: Annotated[TokenData, Depends(get_user)]
+    book_id: PydanticObjectId,
+    request: Request,
+    user: Annotated[TokenData, Depends(get_user)],
 ) -> dict:
-    book_to_update = await Book.get(book_id)
-    if not book_to_update:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"The book with ID={book_id} is not found.",
+    print(f"Received update request for book ID: {book_id}")
+
+    body = await request.body()
+    print(f"Received XML Body:\n{body.decode('utf-8')}")  # ✅ Debugging
+
+    try:
+        # Parse XML body manually
+        root = ET.fromstring(body.decode("utf-8"))
+        updated_data = {
+            "title": root.find("title").text,
+            "author": root.find("author").text,
+            "genre": root.find("genre").text,
+            "book_status": root.find("status").text,
+            "rating": int(root.find("rating").text),
+        }
+
+        # Find book in MongoDB
+        book_to_update = await Book.get(book_id)
+        if not book_to_update:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"The book with ID={book_id} is not found.",
+            )
+        if book_to_update.userId != user.username:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User {user.username} does not have permission to access this resource.",
+            )
+
+        print(
+            f"Before Update - Title: {book_to_update.title}, Status: {book_to_update.book_status}"
         )
-    if book_to_update.userId != user.username:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"User {user.username} does not have permission to access this resource.",
+
+        # Update book fields
+        # await book_to_update.update({"$set": updated_data})
+        # print(
+        #     f"After Update - Title: {book_to_update.title}, Status: {book_to_update.book_status}"
+        # )
+
+        update_result = await book_to_update.update({"$set": updated_data})
+        print(f"Update Result: {update_result}")  # ✅ Debugging MongoDB response
+
+        updated_book = await Book.get(book_id)
+        print(
+            f"After Update - Title: {updated_book.title}, Status: {updated_book.book_status}"
         )
 
-    book_to_update.title = book.title
-    book_to_update.author = book.author
-    book_to_update.genre = book.genre
-    book_to_update.book_status = book.book_status
-    book_to_update.rating = book.rating
-    book_to_update.updatedAt = datetime.now()  # Update timestamp
+        return Response(
+            content=f"<message>Book with ID={book_id} updated successfully</message>",
+            media_type="application/xml",
+        )
 
-    await book_to_update.save()
+    except Exception as e:
+        print(f"Error parsing XML: {str(e)}")
+        return Response(
+            content=f"<error>Invalid XML format</error>", media_type="application/xml"
+        )
 
-    return {
-        "message": "Book updated successfully",
-        "book": book_to_update.dict(by_alias=True),
-    }
+    # book_to_update = await Book.get(book_id)
+    # if not book_to_update:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail=f"The book with ID={book_id} is not found.",
+    #     )
+    # if book_to_update.userId != user.username:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail=f"User {user.username} does not have permission to access this resource.",
+    #     )
+
+    # book_to_update.title = book.title
+    # book_to_update.author = book.author
+    # book_to_update.genre = book.genre
+    # book_to_update.book_status = book.book_status
+    # book_to_update.rating = book.rating
+    # book_to_update.updatedAt = datetime.now()  # Update timestamp
+
+    # await book_to_update.save()
+
+    # return {
+    #     "message": "Book updated successfully",
+    #     "book": book_to_update.dict(by_alias=True),
+    # }
 
 
 @book_router.delete("/{book_id}")

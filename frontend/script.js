@@ -1,18 +1,7 @@
 const api = 'http://localhost:8000/books';
 let books = [];
 
-// const getBooks = () => {
-//     const xhr = new XMLHttpRequest();
-//     xhr.onreadystatechange = () => {
-//       if (xhr.readyState == 4 && xhr.status == 200) {
-//         books = JSON.parse(xhr.responseText);
-//         displayBooks(books);
-//       }
-//     };
-  
-//     xhr.open('GET', api, true);
-//     xhr.send();
-// };
+
 function getBooks(){
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -29,8 +18,6 @@ function getBooks(){
         } else if (xhr.status == 401) {
             // Unauthorized - redirect to login
             alert("Please log in to view books");
-        }else{
-            console.error(`Error fetching books: ${xhr.status} ${xhr.statusText}`);
         }
     }; 
     xhr.open('GET', `${api}/my-books`, true);
@@ -40,29 +27,6 @@ function getBooks(){
     xhr.send();
 }
 
-// // Opens book modal for editing (Handling both POST and PUT methods)
-// const editBook = (id) => {
-//     console.log(`Editing book ID=${id}`);
-
-//     // Find the book from the list
-//     const book = books.find((book) => book._id === id);
-
-//     if (book) {
-//         // Populate modal with book data
-//         document.getElementById('book-title').value = book.title;
-//         document.getElementById('book-author').value = book.author;
-//         document.getElementById('book-genre').value = book.genre;
-//         document.getElementById('book-status').value = book.book_status;
-//         document.getElementById('book-rating').value = book.rating;
-        
-//         // Store the book ID in the hidden input
-//         document.getElementById('book-id').value = id;
-//         console.log("Updating book ID:", document.getElementById('book-id').value);
-//         // Open the modal
-//         const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-//         modal.show();
-//     }
-// };
 
 // post book function
 const postBook = () => {
@@ -120,124 +84,130 @@ const postBook = () => {
         console.error('Error Adding Book:', error);
         alert(`Error adding book: ${error.message}`);
     });
-
-
-    // const xhr = new XMLHttpRequest();
-    // xhr.onreadystatechange = () => {
-    //     if (xhr.readyState === 4 && xhr.status === 201) {
-    //         getBooks(); // Reload books
-    //         resetModal();
-    //         const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
-    //         modal.hide(); // Close modal after saving
-    //     }
-    // };
-    // xhr.open('POST', api, true);
-    // xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-    // xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem("access_token")}`);
-    // xhr.send(JSON.stringify({ title, author, genre, book_status, rating }));
     
     return true; // Indicate successful submission
 };
 
-// Update existing book
-const updateBook = (id) => {
-    console.log(`Editing book ID=${id}`);
+// Generates the editing modal and populates it with the book data
+// This function is called when the user clicks the "Edit Book" button
+const editBook = (_id) => {
 
-    //Find the book in the list
-    const book = books.find((book) => book.id === id);
-    if (!book) {
-        console.error(`Book with ID ${id} not found`);
-        return false; // Book not found
-    }
+    console.log(`Editing book ID=${_id}`);
+   
 
-    // Populate modal with book data
-    // this sets the values in the modal inputs to the book data
-    document.getElementById('book-title').value = book.title;
-    document.getElementById('book-author').value = book.author;
-    document.getElementById('book-genre').value = book.genre;
-    document.getElementById('book-status').value = book.book_status;
-    document.getElementById('book-rating').value = book.rating;
-    document.getElementById('book-id').value = id;
+    const xhr = new XMLHttpRequest();
+     xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                let parser = new DOMParser();
+                let xmlDoc = parser.parseFromString(xhr.responseText, "application/xml");
 
-    // Open the modal
-    const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-    modal.show();
+                const book = {
+                    title: xmlDoc.getElementsByTagName("title")[0]?.textContent || "",
+                    author: xmlDoc.getElementsByTagName("author")[0]?.textContent || "",
+                    genre: xmlDoc.getElementsByTagName("genre")[0]?.textContent || "",
+                    book_status: xmlDoc.getElementsByTagName("status")[0]?.textContent || "reading",
+                    rating: xmlDoc.getElementsByTagName("rating")[0]?.textContent || "0",
+                };
 
-    // Adding event listener for save button
-    document.getElementById('save-btn').addEventListener('click', (e) => {
-        const updatedBook = {
-            title: document.getElementById('book-title').value.trim(),
-            author: document.getElementById('book-author').value.trim(),
-            genre: document.getElementById('book-genre').value.trim(),  
-            book_status: document.getElementById('book-status').value,
-            rating: parseInt(document.getElementById('book-rating').value)  
+                book.book_status = book.book_status.includes("BookStatus.") ? book.book_status.split(".")[1] : book.book_status;
 
-        };
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-            alert("You need to log in before updating a book.");
-            return false;
-        }
+                console.log("Fetched Book Data:", book);
 
-    
-        //Validating data before sending to backend
-        let errorMessage = "";
-        if (!updatedBook.title) errorMessage = "Please enter a book title.";
-        else if (!updatedBook.author) errorMessage = "Please enter an author name.";
-        else if (!updatedBook.genre) errorMessage = "Please enter a genre.";
-        else if (!updatedBook.rating) errorMessage = "Please enter a rating.";
-        else if (!updatedBook.rating < 1 || updatedBook.rating > 5) errorMessage = "Rating must be between 0 and 5.";
-        
-        if (errorMessage) {
-            alert(errorMessage);
-            return false; // Prevent form submission
-        }
-        
-        // Send PUT request to update the book
-       fetch(`http://localhost:8000/books/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(updatedBook)
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(error => {
-                    throw new Error(error.detail || "Failed to update book");});
+                // Populate modal with book data before opening it
+                document.getElementById('book-title').value = book.title;
+                document.getElementById('book-author').value = book.author;
+                document.getElementById('book-genre').value = book.genre;
+                document.getElementById('book-status').value = book.book_status;
+                document.getElementById('book-rating').value = book.rating;
+                document.getElementById('book-id').value = _id;  // Store the ID for saving
+
+                console.log("Corrected Book Status:", book.book_status);
+
+                // Open the modal after setting values
+                const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                modal.show();   
+                console.log("Modal opened with bookdata:", book);
+
+            } else {ook
+                console.error(`Error updating book: ${xhr.status} ${xhr.statusText}`);
             }
-            return response.json();
-        })
-        .then(() => {
-            alert("Book updated successfully!");
-            getBooks(); // Reload books
-            resetModal();
-            const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
-            modal.hide(); // Close modal after saving
-        })
-        .catch(error => {
-            console.error('Error updating book:', error);
-            alert(`Error updating book: ${error.message}`);
-        });
-    }, {once: true });// Ensures the event listener is removed after first use
+        }
+    };
+
+    xhr.open("GET", `${api}/${_id}`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
+    xhr.send();
+
 };
 
-// delete book function
-const deleteBook = (id) => {
-    console.log(`deleting Book ID=${id}`);
+//Update book function will send the updated book data to the backend
+// This function is called when the user clicks the "Save" button in the modal
+const updateBook = (_id) => {
+    console.log(`Updating Book ID=${_id}`);
+    let rawStatus = document.getElementById("book-status").value.trim();
+    let correctedStatus = rawStatus.includes("BookStatus.") ? rawStatus.split(".")[1] : rawStatus || "reading";
 
+    console.log(`Corrected book_status being sent: ${correctedStatus}`);
+
+    // ✅ Debugging: Check final formatted status before sending
+    console.log(`Received corrected book_status: ${correctedStatus}`);
+    // Build XML body for the request
+    // Build XML body correctly
+    const updatedBookXML = `<?xml version="1.0" encoding="UTF-8"?>
+        <book>
+            <title>${document.getElementById('book-title').value.trim()}</title>
+            <author>${document.getElementById('book-author').value.trim()}</author>
+            <genre>${document.getElementById('book-genre').value.trim()}</genre>
+            <status>${correctedStatus}</status>
+            <rating>${document.getElementById('book-rating').value.trim()}</rating>
+        </book>
+    `;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                console.log(`Updated Book ID=${_id}`);
+                getBooks();  // Refresh book list after update
+
+
+            } else {
+                console.error(`Error updating book: ${xhr.status} ${xhr.statusText}`);
+                console.log("Server response:", xhr.responseText);
+            }
+        }
+    };
+    console.log("Final XML being sent:", updatedBookXML);
+    xhr.open("PUT", `${api}/${_id}`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
+    xhr.setRequestHeader("Content-Type", "application/xml"); 
+    xhr.send(updatedBookXML); 
+};
+
+
+
+// delete book function
+const deleteBook = (_id) => {
+    //Find the book in the list
     if(confirm('Are you sure you want to delete this book?')){
-        console.log(`Deleting Book ID=${id}`);
+        console.log(`Deleting Book ID=${_id}`);
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                getBooks(); //reloads books
-                console.log(`Deleted Book ID=${id}`);
+            if (xhr.readyState === 4 ) {
+                if(xhr.status === 200){
+                console.log(`Deleted Book ID=${_id}`);
+                getBooks(); 
+
+                } else {
+                    console.error(`Error deleting book: ${xhr.status} ${xhr.statusText}`);
+                }
             }
         };
 
-        xhr.open('DELETE', `${api}/${id}`, true);
+
+        xhr.open('DELETE', `${api}/${_id}`, true);
+        xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
         xhr.send();
     }
 };
@@ -270,15 +240,21 @@ const displayBooks = (books) => {
                 <p class="card-text">Rating: ${book.rating}</p>
 
 
-                <button id="edit-${book.id}" class="btn btn-warning">Edit Book</button>
-                <button id="delete-${book.id}" class="btn btn-danger">Delete Book</button>
+                <button class="btn btn-warning edit-btn" data-id="${book._id}">Edit Book</button>
+                <button class="btn btn-danger delete-btn" data-id="${book._id}">Delete Book</button>
             </div>
         `;
         bookList.appendChild(bookElement);
+
+        document.getElementById("book-list").addEventListener("click", (event) => {
+            if (event.target.classList.contains("edit-btn")) {
+                editBook(event.target.dataset.id); // Uses `data-id` for dynamic retrieval
+            }
+            if (event.target.classList.contains("delete-btn")) {
+                deleteBook(event.target.dataset.id);
+            }
+        });
         
-        // Add event listeners after adding the element to the DOM
-        document.getElementById(`edit-${book.id}`).addEventListener('click', () => editBook(book.id));
-        document.getElementById(`delete-${book.id}`).addEventListener('click', () => deleteBook(book.id));
     });
 };
 
@@ -311,6 +287,9 @@ const initializeEventListeners = () => {
         if (bookId) {
             // Update existing book
             success = updateBook(bookId);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+            modal.hide(); // Close modal after saving
+            window.location.reload(); // Reload the page to reflect changes
         } else {
             // Add new book
             success = postBook();
@@ -464,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const modalEl = document.getElementById('signInModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.hide();
+            getBooks(); // Reload books after login
 
             //make the sign out button visible
             document.getElementById("sign-out-btn").style.display = "block";
