@@ -92,3 +92,33 @@ body {
 .completed {
   background-color: #e3ffe8; /* Green */
 }
+
+/* 
+ADMIN CONTROLS:
+  This section contains styles for the admin controls, including the user list and action buttons.
+  The styles are designed to create a clean and organized layout for managing users.
+*/
+
+.user-row {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  margin-bottom: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.user-row span {
+  flex: 1;
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-row .actions {
+  display: flex;
+  gap: 8px;
+}

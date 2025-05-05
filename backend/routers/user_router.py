@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from models.user_model import User, UserRequest
+from models.user_model import User, UserRequest, UserDto
 
 from auth.jwt_auth import (
     LoginResult,
@@ -137,3 +137,50 @@ async def reset_password(
     user.password = hashed_password
     await user.save()
     return {"message": "Password reset successfully"}
+
+
+### Admin User Management Routes ###
+# Get all users route ADMIN ONLY
+@user_router.get("/all", response_model=List[UserDto])
+async def get_all_users(current_user: Annotated[TokenData, Depends(get_user)]):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    users = await User.find_all().to_list()
+    return [
+        UserDto(id=str(u.id), username=u.username, email=u.email, role=u.role)
+        for u in users
+    ]
+
+
+# Promote a user to admin (admin only)
+@user_router.put("/{username}/promote")
+async def promote_user(
+    username: str, current_user: Annotated[TokenData, Depends(get_user)]
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    user = await User.find_one(User.username == username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = "admin"
+    await user.save()
+    return {"message": f"User '{username}' promoted to admin."}
+
+
+# Delete a user (admin only)
+@user_router.delete("/{username}")
+async def delete_user(
+    username: str, current_user: Annotated[TokenData, Depends(get_user)]
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    user = await User.find_one(User.username == username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await user.delete()
+    return {"message": f"User '{username}' has been deleted."}

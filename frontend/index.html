@@ -16,6 +16,13 @@
 
 
   <div class="button-group">
+    <!-- Search Bar -->
+    <form class="d-flex align-items-center gap-2">
+      <input class="form-control" type="search" placeholder="Search ISBN" aria-label="Search">
+      <button class="btn btn-outline-warning" type="submit">Search</button>
+    </form>  
+
+    <!-- Filter Buttons -->
     <button id="filter-reading" class="btn btn-bd-primary filter-btn">Show Reading</button>
     <button id="filter-to-read" class="btn btn-bd-primary filter-btn">Show To-Read</button>
     <button id="filter-completed" class="btn btn-bd-primary filter-btn">Show Completed</button>
@@ -116,25 +123,25 @@
             
             <!-- Book Title -->
             <div class="mb-3">
-              <label for="book-title" class="form-label">Book Title</label>
+              <label for="book-title" class="form-label">Book Title *</label>
               <input type="text" class="form-control" id="book-title" required />
             </div>
 
             <!-- Author -->
             <div class="mb-3">
-                <label for="book-author" class="form-label">Author</label>
+                <label for="book-author" class="form-label">Author *</label>
                 <input type="text" class="form-control" id="book-author" required />
             </div>
 
             <!-- Genre -->
             <div class="mb-3">
-                <label for="book-genre" class="form-label">Genre</label>
+                <label for="book-genre" class="form-label">Genre *</label>
                 <input type="text" class="form-control" id="book-genre" required />
             </div>
 
             <!-- Status -->
             <div class="mb-3">
-                <label for="book-status" class="form-label">Status</label>
+                <label for="book-status" class="form-label">Status *</label>
                 <select class="form-select" id="book-status" required>
                     <option value="reading">Reading</option>
                     <option value="to-read">To-Read</option>
@@ -144,7 +151,7 @@
 
             <!-- Rating -->
             <div class="mb-3">
-                <label for="book-rating" class="form-label">Rating</label>
+                <label for="book-rating" class="form-label">Rating *</label>
                 <input type="number" class="form-control" id="book-rating" min="1" max="5" required />
             </div>
           </div>
@@ -166,7 +173,23 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
     crossorigin="anonymous">
     </script>
-
+    
   <script src="script.js?v=7"></script>
 </body>
 </html>
+
+
+<!-- Display Users Button (Admins Only) -->
+<div class="center-container">
+  <button id="display-users" class="btn btn-warning" style="display: none;">
+    Display Users
+  </button>
+</div>
+
+<!-- Optional Section Heading -->
+<h3 id="user-panel-heading" class="text-center mt-4" style="display: none;">Admin User Management</h3>
+
+<!-- Container for the user list -->
+<div id="user-list" class="container mt-3" style="display: none;">
+  <!-- JS will populate rows of users here -->
+</div>

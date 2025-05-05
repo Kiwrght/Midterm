@@ -127,7 +127,7 @@ const editBook = (_id) => {
                 // Open the modal after setting values
                 const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
                 modal.show();   
-                console.log("Modal opened with bookdata:", book);
+                console.log("Modal opened with book data:", book);
 
             } else {ook
                 console.error(`Error updating book: ${xhr.status} ${xhr.statusText}`);
@@ -499,4 +499,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+/* ADMIN CONTROLS: 
+    - Promote/Demote users
+    - Delete users
+*/
 
+// Decode user token
+const decoded = parseJwt(token);
+if (decoded.role === "admin") {
+  // show admin-only content
+}
+container.innerHTML = "";
+users.forEach(user => {
+  const row = document.createElement("div");
+  row.className = "user-row";
+
+  const isAdmin = user.role === "admin";
+  const promoteOrDemoteBtn = isAdmin
+    ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
+    : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
+
+  row.innerHTML = `
+    <span><strong>${user.username}</strong></span>
+    <span>${user.email}</span>
+    <span class="actions">${promoteOrDemoteBtn}</span>
+    <span class="actions">
+      <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
+    </span>
+  `;
+  container.appendChild(row);
+});
