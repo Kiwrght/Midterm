@@ -1,1 +1,17 @@
-<p>login-modal works!</p>
+<div class="modal fade" id="signInModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title">Sign In</h1>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" [(ngModel)]="username" placeholder="Username">
+          <input type="password" [(ngModel)]="password" placeholder="Password">
+        </div>
+        <div class="modal-footer">
+          <button (click)="signIn()">Sign In</button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,6 +1,7 @@
 <h2>My Books</h2>
-<ul>
-  <li *ngFor="let book of books">
+<div class="row row-cols-3 row-cols-md-2 g-4 mt-3" id="book-list">
+  <div *ngFor="let book of books">
     <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.genre }})
-  </li>
-</ul>
+    <button (click)="editBook(book)">Edit</button>
+  </div>
+</div>

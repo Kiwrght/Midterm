@@ -1,1 +1,35 @@
-<p>admin-panel works!</p>
+<div *ngIf="isAdmin">
+    <h3 class="text-center mt-4">Admin User Management</h3>
+  
+    <!-- Display Users Button -->
+    <div class="center-container">
+      <button (click)="displayUsers()" class="btn btn-warning">Display Users</button>
+    </div>
+  
+    <!-- User List -->
+    <div class="container mt-3">
+      <h4>Registered Users</h4>
+      <ul class="list-group">
+        <li *ngFor="let user of users" class="list-group-item">
+          <strong>{{ user.username }}</strong> - Role: {{ user.role }}
+          <button *ngIf="user.role !== 'admin'" (click)="promoteUser(user)" class="btn btn-success btn-sm">Promote</button>
+          <button *ngIf="user.role === 'admin'" (click)="demoteUser(user)" class="btn btn-danger btn-sm">Demote</button>
+        </li>
+      </ul>
+    </div>
+  
+    <!-- Display Books Button -->
+    <div class="center-container mt-4">
+      <button (click)="displayBooks()" class="btn btn-primary">Display Books</button>
+    </div>
+  
+    <!-- Book List -->
+    <div class="container mt-3">
+      <h4>All Books</h4>
+      <ul class="list-group">
+        <li *ngFor="let book of books" class="list-group-item">
+          <strong>{{ book.title }}</strong> by {{ book.author }}
+        </li>
+      </ul>
+    </div>
+  </div>

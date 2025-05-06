@@ -1,1 +1,24 @@
-<p>book-form works!</p>
+<div class="modal fade" id="exampleModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Book</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" [(ngModel)]="book.title" placeholder="Title">
+          <input type="text" [(ngModel)]="book.author" placeholder="Author">
+          <input type="text" [(ngModel)]="book.genre" placeholder="Genre">
+          <select [(ngModel)]="book.status">
+            <option value="reading">Reading</option>
+            <option value="to-read">To-Read</option>
+            <option value="completed">Completed</option>
+          </select>
+          <input type="number" [(ngModel)]="book.rating" placeholder="Rating" min="1" max="5">
+        </div>
+        <div class="modal-footer">
+          <button (click)="updateBook()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
