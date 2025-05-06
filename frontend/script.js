@@ -1,5 +1,5 @@
 const api = 'http://localhost:8000/books';
-let books = [];
+const books = [];
 
 
 function getBooks(){
@@ -12,7 +12,11 @@ function getBooks(){
     xhr.onreadystatechange = () => {
         if (xhr.readyState == 4) {
             if (xhr.status == 200){
-                const books = JSON.parse(xhr.responseText);
+                books.length = 0; // Reset books array before adding new ones
+                books.push(...JSON.parse(xhr.responseText)); // Store books globally
+                console.log("Books Stored Locally:", books); // Debugging check
+                // const books = JSON.parse(xhr.responseText);
+                // console.log("Fetched Books fromAPI:", books);
                 displayBooks(books);
             }
         } else if (xhr.status == 401) {
@@ -228,6 +232,7 @@ const displayBooks = (books) => {
     const bookList = document.getElementById('book-list');
     bookList.innerHTML = ''; // clears existing content
 
+    console.log("Books Passed to displayBooks:", books);
     books.forEach((book) => {
         const bookElement = document.createElement('div');
         bookElement.className = `col-12 col-md-4 card mb-3 ${getCardColor(book.book_status)}`;
@@ -299,10 +304,27 @@ const initializeEventListeners = () => {
     // Reset modal when it's closed or reset button is clicked
     document.getElementById('exampleModal').addEventListener('hidden.bs.modal', resetModal);
     document.getElementById('close').addEventListener('click', resetModal);
+    
+    document.querySelectorAll(".filter-option").forEach(item => {
+        item.addEventListener("click", () => {
+            const filterStatus = item.getAttribute("data-filter");
+    
+            console.log("Filtering for:", filterStatus); // Debugging check
+    
+            if (filterStatus === "all") {
+                displayBooks(books); // Show all books
+            } else {
+                const filteredBooks = books.filter(book => book.book_status === filterStatus);
+                displayBooks(filteredBooks);
+            }
+        });
+    });
 
-    // Set up filter buttons
     document.getElementById('filter-reading').addEventListener('click', () => {
+        const bookList = document.getElementById('book-list');
+        console.log("Book:", bookList.book_status); // Debugging check
         const filteredBooks = books.filter(book => book.book_status === 'reading');
+        console.log("Filtered Books (Reading): ", filteredBooks); // Debugging check
         displayBooks(filteredBooks);
     });
 
@@ -447,6 +469,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             //make the sign out button visible
             document.getElementById("sign-out-btn").style.display = "block";
+
+            //if user is admin, show admin panel
+            if (data.role === "admin") {
+                document.getElementById("display-users").style.display = "block";
+                document.getElementById("user-list").style.display = "block";
+                fetchUsers(); // Load user list
+            }
+    
+
             
         
         })
@@ -504,28 +535,83 @@ document.addEventListener("DOMContentLoaded", () => {
     - Delete users
 */
 
-// Decode user token
-const decoded = parseJwt(token);
-if (decoded.role === "admin") {
-  // show admin-only content
-}
-container.innerHTML = "";
-users.forEach(user => {
-  const row = document.createElement("div");
-  row.className = "user-row";
+// // Decode user token
+// const decoded = parseJwt(token);
+// if (decoded.role === "admin") {
+//   // show admin-only content
+// }
+// container.innerHTML = "";
+// users.forEach(user => {
+//   const row = document.createElement("div");
+//   row.className = "user-row";
 
-  const isAdmin = user.role === "admin";
-  const promoteOrDemoteBtn = isAdmin
-    ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
-    : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
+//   const isAdmin = user.role === "admin";
+//   const promoteOrDemoteBtn = isAdmin
+//     ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
+//     : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
 
-  row.innerHTML = `
-    <span><strong>${user.username}</strong></span>
-    <span>${user.email}</span>
-    <span class="actions">${promoteOrDemoteBtn}</span>
-    <span class="actions">
-      <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
-    </span>
-  `;
-  container.appendChild(row);
-});
+//   row.innerHTML = `
+//     <span><strong>${user.username}</strong></span>
+//     <span>${user.email}</span>
+//     <span class="actions">${promoteOrDemoteBtn}</span>
+//     <span class="actions">
+//       <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
+//     </span>
+//   `;
+//   container.appendChild(row);
+// });
+
+  // Fetches all the users from the backend
+  const fetchUsers = () => {
+    fetch("http://localhost:8000/users/all", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+    })
+    .then(response => response.json())
+    .then(users => {
+      console.log("User List:", users); // Debugging check
+      populateUserList(users);
+    })
+    .catch(err => console.error("Error fetching users:", err));
+  };
+
+   //populates the user list in the admin panel
+  const populateUserList = (users) => {
+    const container = document.getElementById("user-list");
+    container.innerHTML = ""; // Clear old entries
+  
+    users.forEach(user => {
+      const row = document.createElement("div");
+      row.className = "user-row";
+  
+      const isAdmin = user.role === "admin";
+      const promoteOrDemoteBtn = isAdmin
+        ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
+        : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
+  
+      row.innerHTML = `
+        <span><strong>${user.username}</strong></span>
+        <span>${user.email}</span>
+        <span class="actions">${promoteOrDemoteBtn}</span>
+        <span class="actions">
+          <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
+        </span>
+      `;
+      container.appendChild(row);
+    });
+  };
+
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return; // No token means no login
+  
+    const decoded = parseJwt(token); // Decode JWT to get role
+    console.log("Decoded Token:", decoded); // Debugging check
+  
+    if (decoded.role === "admin") {
+      document.getElementById("display-users").style.display = "block";
+      
+      document.getElementById("user-list").style.display = "block";
+      fetchUsers(); // Load user list
+    }
+  });
+  

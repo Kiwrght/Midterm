@@ -13,14 +13,21 @@
 <body>
   <h1 class="site-title text-center">Bookkeepr</h1>
   <p id="logged-in-user" class="text-center" style="margin-top: -15px; margin-bottom: 15px; font-style: italic;"></p>
+  <p id="admin-message" class="text-center" style="display: none;">Welcome, Admin!</p>
+  <p id="user-message" class="text-center" style="display: none;">Welcome, User!</p>
   <!-- Admin Section -->
   <div class="admin-panel">
+    <!-- Admin Button to Display Users -->
     <button id="display-users" class="btn btn-warning" style="display: none;">
       Display Users
     </button>
+    
+
     <h3 id="user-panel-heading" class="text-center mt-4" style="display: none;">
       Admin User Management
     </h3>
+
+    <!-- Displays User List-->
     <div id="user-list" class="container mt-3" style="display: none;">
       <!-- JS dynamically inserts user data here -->
     </div>
@@ -28,14 +35,6 @@
 
 
   <div class="button-group">
-   
-
-    <!-- Display Users Button (Admins Only) -->
-    <div class="center-container">
-      <button id="display-users" class="btn btn-warning" style="display: none;">
-        Display Users
-      </button>
-    </div>
 
     <!-- Search Bar -->
     <form class="d-flex align-items-center gap-2">
@@ -43,13 +42,23 @@
       <button class="btn btn-outline-warning" type="submit">Search</button>
     </form>  
 
-    <!-- Filter Buttons -->
+    <!-- Filter Buttons
     <button id="filter-reading" class="btn btn-bd-primary filter-btn">Show Reading</button>
     <button id="filter-to-read" class="btn btn-bd-primary filter-btn">Show To-Read</button>
     <button id="filter-completed" class="btn btn-bd-primary filter-btn">Show Completed</button>
-    <button id="filter-all" class="btn btn-bd-primary filter-btn">Show All</button>
+    <button id="filter-all" class="btn btn-bd-primary filter-btn">Show All</button> -->
 
-
+    <div class="dropdown">
+      <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          Filter Books
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+          <li><a class="dropdown-item filter-option" data-filter="all">Show All</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="reading">Reading</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="to-read">To-Read</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="completed">Completed</a></li>
+      </ul>
+    </div>
     
     <!-- Login/Logout Icon Button -->
     <button class="btn btn-outline-secondary" title="Login" style="background-color: transparent;"
