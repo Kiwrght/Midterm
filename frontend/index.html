@@ -13,9 +13,30 @@
 <body>
   <h1 class="site-title text-center">Bookkeepr</h1>
   <p id="logged-in-user" class="text-center" style="margin-top: -15px; margin-bottom: 15px; font-style: italic;"></p>
+  <!-- Admin Section -->
+  <div class="admin-panel">
+    <button id="display-users" class="btn btn-warning" style="display: none;">
+      Display Users
+    </button>
+    <h3 id="user-panel-heading" class="text-center mt-4" style="display: none;">
+      Admin User Management
+    </h3>
+    <div id="user-list" class="container mt-3" style="display: none;">
+      <!-- JS dynamically inserts user data here -->
+    </div>
+  </div>
 
 
   <div class="button-group">
+   
+
+    <!-- Display Users Button (Admins Only) -->
+    <div class="center-container">
+      <button id="display-users" class="btn btn-warning" style="display: none;">
+        Display Users
+      </button>
+    </div>
+
     <!-- Search Bar -->
     <form class="d-flex align-items-center gap-2">
       <input class="form-control" type="search" placeholder="Search ISBN" aria-label="Search">
@@ -179,12 +200,7 @@
 </html>
 
 
-<!-- Display Users Button (Admins Only) -->
-<div class="center-container">
-  <button id="display-users" class="btn btn-warning" style="display: none;">
-    Display Users
-  </button>
-</div>
+
 
 <!-- Optional Section Heading -->
 <h3 id="user-panel-heading" class="text-center mt-4" style="display: none;">Admin User Management</h3>
