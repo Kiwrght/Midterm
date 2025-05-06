@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { BehaviorSubject, map, Observable } from 'rxjs';
-import { api } from './constants';
+import { API_URL } from './constants';
 
 export interface LoginResult {
   username: string;
@@ -22,11 +22,27 @@ export interface UserDto {
   providedIn: 'root',
 })
 export class UsersService {
-  private readonly url = api + '/users';
+  private readonly url = API_URL + '/users';
   localStorageKey = 'accessToken';
 
   constructor(private http: HttpClient, private router: Router) {
     this.decodeAccessToken();
+  }
+
+  getUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.url}`);
+  }
+
+  promoteUser(username: string): Observable<any> {
+    return this.http.put(`${this.url}/${username}/promote`, {});
+  }
+
+  demoteUser(username: string): Observable<any> {
+    return this.http.put(`${this.url}/${username}/demote`, {});
+  }
+
+  deleteUser(username: string): Observable<any> {
+    return this.http.delete(`${this.url}/${username}`);
   }
 
   signUp(username: string, password: string, email: string): Observable<any> {
@@ -54,6 +70,7 @@ export class UsersService {
         })
       );
   }
+
   private decodeAccessToken() {
     let user = this._defaultUser;
     try {

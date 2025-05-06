@@ -1,43 +1,62 @@
-
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../services/auth.service'; // Ensure you have an auth service
-import { UsersService } from '../services/users.service'; // Ensure you have a user service
-import { BookService } from '../services/book.service'; // Ensure you have a book service
-import { Router } from '@angular/router'; // For navigation
-
+import { CommonModule } from '@angular/common';
+import { UsersService } from '../services/users.service';
 
 @Component({
   selector: 'app-admin-panel',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './admin-panel.component.html',
   styleUrls: ['./admin-panel.component.css']
 })
 export class AdminPanelComponent implements OnInit {
-  isAdmin = false; // Tracks admin status
+  users: any[] = [];
+  books: any[] = []; //  Stores fetched books
+  isAdmin = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(private usersService: UsersService) {}
 
   ngOnInit(): void {
-    this.isAdmin = this.authService.getUserRole() === 'admin'; // Check admin role
+    this.loadUsers();
   }
-}
 
-function displayBooks(this: any) {
+  loadUsers(): void {
+    this.usersService.getAllUsers().subscribe(users => {
+      this.users = users;
+    });
+  }
 
-  console.log("Fetching books...");
-  // Call your BookService here to get all books
-  this.bookService.getBooks().subscribe((books: any) => {
-    this.books = books;
-  });
-}
+  promoteUser(username: string): void {
+    this.usersService.promoteUser(username).subscribe(() => {
+      this.users = this.users.map(user =>
+        user.username === username ? { ...user, role: 'admin' } : user
+      );
+    });
+  }
+
+  demoteUser(username: string): void {
+    this.usersService.demoteUser(username).subscribe(() => {
+      this.users = this.users.map(user =>
+        user.username === username ? { ...user, role: 'user' } : user
+      );
+    });
+  }
+
+  deleteUser(username: string): void {
+    this.usersService.deleteUser(username).subscribe(() => {
+      this.users = this.users.filter(user => user.username !== username);
+    });
+  }
+
+  displayBooks(): void {
+    console.log("Fetching books...");
+    //  Add API logic here to retrieve books
+  }
+
+  displayUsers(): void {
+    this.usersService.getUsers().subscribe(users => {
+      this.users = users; // ✅ Updates user list reactively
+    });
+  }
   
-function promoteUser(this: any, user: any) {
-  console.log(`Promoting ${user.username} to admin...`);
-  // Call your API to update user role here
-  this.userService.promoteUser(user.id).subscribe(() => {
-    user.role = 'admin'; //Update role locally after successful API call
-  });
 }
-function constructor(private: any, userService: any, UserService: any) {
-  throw new Error('Function not implemented.');
-}
-

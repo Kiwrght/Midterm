@@ -1,26 +1,52 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription } from 'rxjs';
+import { UsersService } from './services/users.service';
+
+interface InternalRoute {
+  path: string;
+  text: string;
+}
 
 @Component({
-  selector: 'app-admin-panel',
-  templateUrl: './admin-panel/admin-panel.component.html',
-  styleUrls: ['./admin-panel/admin-panel.component.css']
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgbDropdownModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
 })
-export class AdminPanelComponent {
-  isAdmin = false; // ✅ Check if the user is an admin
-  users: any[] = []; // ✅ Store users
+export class AppComponent implements OnInit, OnDestroy {
+  username = '';
+  isAdmin = false;
+  usersSvc = inject(UsersService);
+  routes: InternalRoute[] = [];
+  private userSubscription?: Subscription;
 
-  displayUsers() {
-    console.log("Fetching users...");
-    // API call to fetch users will go here
+  ngOnInit(): void {
+    this.userSubscription = this.usersSvc.user$.subscribe((user) => {
+      this.username = user?.username || '';
+      this.isAdmin = user?.role === 'AdminUser';
+      this.routes = [];
+
+      if (user?.role) {
+        this.routes.push({ path: 'books', text: 'My Books' });
+        this.routes.push({ path: 'add-book', text: 'Add Book' });
+      }
+
+      if (this.isAdmin) {
+        this.routes.push({ path: 'admin', text: 'Admin Panel' });
+      }
+    });
   }
 
-  promoteUser(user: any) {
-    console.log(`Promoting ${user.username} to admin...`);
-    // API call to promote user will go here
+  logout() {
+    this.username = '';
+    this.isAdmin = false;
+    this.usersSvc.logout();
   }
 
-  demoteUser(user: any) {
-    console.log(`Demoting ${user.username} to regular user...`);
-    // API call to demote user will go here
+  ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
   }
 }

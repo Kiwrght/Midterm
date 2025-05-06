@@ -1,13 +1,15 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { UsersService } from '../services/users.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 
 @Component({
   selector: 'app-login-modal',
-  imports: [],
+  imports: [FormsModule, RouterModule, CommonModule],
   templateUrl: './login-modal.component.html',
   styleUrl: './login-modal.component.css'
 })

@@ -1,0 +1,62 @@
+.book-list-container {
+    padding: 20px;
+    background: #fffcf7; /* Off-White */
+    border-radius: 8px;
+  }
+  
+  .book-list-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.5rem;
+    color: #2e2e2e;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* === Grid Layout for Books === */
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  /* === Book Card Styling === */
+  .card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+  }
+  
+  /* === Book Status Colors === */
+  .reading {
+    background-color: #f8e3ff; /* Purple */
+  }
+  
+  .to-read {
+    background-color: #e3faff; /* Blue */
+  }
+  
+  .completed {
+    background-color: #e3ffe8; /* Green */
+  }
+  
+  /* === Button Styling === */
+  button {
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .btn-warning {
+    background-color: #ffc107; /* Yellow */
+    color: black;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545; /* Red */
+    color: white;
+  }

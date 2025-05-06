@@ -1,17 +1,28 @@
-<div class="modal fade" id="signInModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title">Sign In</h1>
-          <button type="button" class="btn-close" (click)="closeModal()"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" [(ngModel)]="username" placeholder="Username">
-          <input type="password" [(ngModel)]="password" placeholder="Password">
-        </div>
-        <div class="modal-footer">
-          <button (click)="signIn()">Sign In</button>
-        </div>
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Login to BookKeepr</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form (submit)="login()">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" class="form-control" id="username" [(ngModel)]="username" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" class="form-control" id="password" [(ngModel)]="password" required />
+          </div>
+
+          <p class="text-danger" *ngIf="errorMsg">{{ errorMsg }}</p>
+
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
       </div>
     </div>
   </div>
+</div>
