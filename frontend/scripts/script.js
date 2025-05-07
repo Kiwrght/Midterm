@@ -1,6 +1,35 @@
 const api = 'http://localhost:8000/books';
 const books = [];
 
+function parseJwt(token) {
+    try {
+        const base64Url = token.split(".")[1];
+        const base64 = atob(base64Url);
+        return JSON.parse(decodeURIComponent(escape(base64)));
+    } catch (error) {
+        console.error("Invalid token format:", error);
+        return null;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("access_token");
+    const userRole = localStorage.getItem("user_role");
+    console.log("User Role:", userRole); // Debugging check
+
+    if (!token) {
+        window.location.href = "login.html"; // Redirect to login if not authenticated
+    } else {
+        const adminPanel = document.getElementById("adminDropdown");
+
+        if (adminPanel) { 
+            adminPanel.style.display = (userRole === "admin") ? "block" : "none"; // ✅ Auto-hide for non-admins
+        } else {
+            console.error("Admin panel element not found in DOM!");
+        }
+    }
+});
+
 
 function getBooks(){
     const token = localStorage.getItem("access_token");
@@ -320,27 +349,24 @@ const initializeEventListeners = () => {
         });
     });
 
-    document.getElementById('filter-reading').addEventListener('click', () => {
-        const bookList = document.getElementById('book-list');
-        console.log("Book:", bookList.book_status); // Debugging check
-        const filteredBooks = books.filter(book => book.book_status === 'reading');
-        console.log("Filtered Books (Reading): ", filteredBooks); // Debugging check
-        displayBooks(filteredBooks);
+    // Admin actions for user management
+    document.querySelectorAll(".filter-option").forEach(item => {
+        item.addEventListener("click", () => {
+            const filterType = item.textContent.trim(); // Get text value
+    
+            console.log("Admin Action:", filterType); // Debugging check
+    
+            if (filterType === "Users") {
+                fetchUsers(); // Fetch all users dynamically
+            } else if (filterType === "All Books") {
+                fetchAllBooks(); // Fetch all books dynamically
+            } else if (filterType === "My Books") {
+                displayBooks(books); // Show only the user's books
+            }
+        });
     });
-
-    document.getElementById('filter-to-read').addEventListener('click', () => {
-        const filteredBooks = books.filter(book => book.book_status === 'to-read');
-        displayBooks(filteredBooks);
-    });
-
-    document.getElementById('filter-completed').addEventListener('click', () => {
-        const filteredBooks = books.filter(book => book.book_status === 'completed');
-        displayBooks(filteredBooks); 
-    });
-
-    document.getElementById('filter-all').addEventListener('click', () => {
-        displayBooks(books); 
-    });
+    
+    
 };
 
 // load books and initialize event listeners when the page loads
@@ -351,152 +377,71 @@ const initializeEventListeners = () => {
 
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("create-account-button").addEventListener("click", function () {
-        console.log("Create account button clicked");
+// document.addEventListener("DOMContentLoaded", () => {
+//     document.getElementById("create-account-button").addEventListener("click", function () {
+//         console.log("Create account button clicked");
 
-        // getting user input from signup
-      const username = document.getElementById('new-username').value.trim();
-      const email = document.getElementById('new-email').value.trim();
-      const password = document.getElementById('new-password').value;
+//         // getting user input from signup
+//       const username = document.getElementById('new-username').value.trim();
+//       const email = document.getElementById('new-email').value.trim();
+//       const password = document.getElementById('new-password').value;
         
-      // validating input
-      if (!username || !password || !email) {
-        alert("Please fill in all fields.");
-        return;
-      }
+//       // validating input
+//       if (!username || !password || !email) {
+//         alert("Please fill in all fields.");
+//         return;
+//       }
   
-    //   const formBody = new URLSearchParams();
-    //   formBody.append("username", username);
-    //   formBody.append("password", password);
+//     //   const formBody = new URLSearchParams();
+//     //   formBody.append("username", username);
+//     //   formBody.append("password", password);
     
-    // Debugging output of user input
-    console.log("Sending request payload:", JSON.stringify({
-        username: username,
-        email: email,
-        password: password,
-    }));
+//     // Debugging output of user input
+//     console.log("Sending request payload:", JSON.stringify({
+//         username: username,
+//         email: email,
+//         password: password,
+//     }));
       
-      // create account
-      fetch('http://localhost:8000/users/signup', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: username,
-            email: email,
-            password: password,
-          })
-      })
-      .then(async res => {
-        if (!res.ok){
-        return res.json().then(data => {
-            throw new Error(data.detail || "Registration failed");
-          } );
-        }
-        return res.json();
-      })
-      .then(data => {
+//       // create account
+//       fetch('http://localhost:8000/users/signup', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//           },
+//           body: JSON.stringify({
+//             username: username,
+//             email: email,
+//             password: password,
+//           })
+//       })
+//       .then(async res => {
+//         if (!res.ok){
+//         return res.json().then(data => {
+//             throw new Error(data.detail || "Registration failed");
+//           } );
+//         }
+//         return res.json();
+//       })
+//       .then(data => {
         
-        alert("Account created successfully! You can now log in.");
-        alert("Button clicked, trying to close modal");
-        //Hide the modal after successful account creation
-        const modalEl = document.getElementById('createAccountModal');
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.hide();
+//         alert("Account created successfully! You can now log in.");
+//         alert("Button clicked, trying to close modal");
+//         //Hide the modal after successful account creation
+//         const modalEl = document.getElementById('createAccountModal');
+//         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+//         modal.hide();
 
-        //clear input fields
-        document.getElementById('new-username').value = '';
-        document.getElementById('new-password').value = '';
-    })
-      .catch(error => {
-        console.error("Registration error: ",error);
-        alert(error.message || "Could not create account on the server.");
-      });      
-    });
-
-
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("sign-in-btn").addEventListener("click", function () {
-        
-        // getting user input from login
-        console.log("Sign In button clicked");
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-
-        // validating input
-        if (!username || !password) {
-            alert("Please enter both username and password.");
-            return;
-        }
-
-        // formatting credentials
-        const formBody = new URLSearchParams();
-        formBody.append("username", username);
-        formBody.append("password", password);
-
-        // sending POST request to backend login route
-        // calling exact route
-        console.log("Sending login request with:", JSON.stringify({ username, password }));
-        fetch('http://localhost:8000/users/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formBody,
-        })
-    
-        .then(async res => {
-            if (!res.ok){
-            const data = await res.json();
-                throw new Error(data.detail || "Login failed");
-            }
-            return res.json();
-        })
-        // save token, update page
-        .then(data => {
-            localStorage.setItem("access_token", data.access_token);
-            showLoggedInUser(username);
-            alert("Logged in successfully!");
-
-            // Hide the modal after successful login
-            const modalEl = document.getElementById('signInModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.hide();
-            getBooks(); // Reload books after login
-
-            //make the sign out button visible
-            document.getElementById("sign-out-btn").style.display = "block";
-
-            //if user is admin, show admin panel
-            if (data.role === "admin") {
-                document.getElementById("display-users").style.display = "block";
-                document.getElementById("user-list").style.display = "block";
-                fetchUsers(); // Load user list
-            }
-    
-
-            
-        
-        })
-  
-
-        // Trying something 
-        .catch(error => {
-            console.error("Logout failed:", error);
-            alert("Logout failed. Please try again.");
-        });
-
-        // show user has logged in
-        function showLoggedInUser(username) {
-        const userDisplay = document.getElementById('logged-in-user');
-        userDisplay.textContent = `Logged in as ${username}`;
-        
-        }        
-    });
-});
+//         //clear input fields
+//         document.getElementById('new-username').value = '';
+//         document.getElementById('new-password').value = '';
+//     })
+//       .catch(error => {
+//         console.error("Registration error: ",error);
+//         alert(error.message || "Could not create account on the server.");
+//       });      
+//     });
+// });
 
 
 // Logout function
@@ -530,88 +475,89 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// // show the login modal when the page loads
+// document.addEventListener("DOMContentLoaded", () => {
+//     // Hide all elements except login & title
+//     document.querySelectorAll(".content").forEach(el => el.classList.add("hidden"));
+
+//     // Show content after login
+//     document.getElementById("sign-in-btn").addEventListener("click", () => {
+//         document.querySelectorAll(".content").forEach(el => el.classList.remove("hidden"));
+//     });
+// });
+
+
 /* ADMIN CONTROLS: 
     - Promote/Demote users
     - Delete users
 */
 
-// // Decode user token
-// const decoded = parseJwt(token);
-// if (decoded.role === "admin") {
-//   // show admin-only content
-// }
-// container.innerHTML = "";
-// users.forEach(user => {
-//   const row = document.createElement("div");
-//   row.className = "user-row";
+// only Show admin dropdown if user is admin
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return; // No token means no login
 
-//   const isAdmin = user.role === "admin";
-//   const promoteOrDemoteBtn = isAdmin
-//     ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
-//     : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
+    const decoded = parseJwt(token); // Decode JWT to get role
+    console.log("Decoded Token:", decoded); // Debugging check
 
-//   row.innerHTML = `
-//     <span><strong>${user.username}</strong></span>
-//     <span>${user.email}</span>
-//     <span class="actions">${promoteOrDemoteBtn}</span>
-//     <span class="actions">
-//       <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
-//     </span>
-//   `;
-//   container.appendChild(row);
-// });
+    const adminDropdown = document.getElementById("adminDropdown").parentElement;
 
-  // Fetches all the users from the backend
-  const fetchUsers = () => {
-    fetch("http://localhost:8000/users/all", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+    if (decoded.role === "admin") {
+        adminDropdown.style.display = "block"; // Show dropdown for admins
+    } else {
+        adminDropdown.style.display = "none"; // Hide dropdown for non-admins
+    }
+});
+
+// Fetches all the users from the backend
+const fetchUsers = () => {
+fetch("http://localhost:8000/users/all", {
+    headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+})
+.then(response => response.json())
+.then(users => {
+    console.log("User List:", users); // Debugging check
+    populateUserList(users);
+})
+.catch(err => console.error("Error fetching users:", err));
+};
+
+//populates all the books in the database
+const fetchAllBooks = () => {
+    fetch("http://localhost:8000/books/all-books", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
     })
     .then(response => response.json())
-    .then(users => {
-      console.log("User List:", users); // Debugging check
-      populateUserList(users);
+    .then(books => {
+        console.log("All Books in DB:", books);
+        displayBooks(books);
     })
-    .catch(err => console.error("Error fetching users:", err));
-  };
+    .catch(error => console.error("Error fetching books:", error));
+};
 
-   //populates the user list in the admin panel
-  const populateUserList = (users) => {
-    const container = document.getElementById("user-list");
-    container.innerHTML = ""; // Clear old entries
-  
+   
+const populateUserList = (users) => {
+const container = document.getElementById("user-list");
+container.innerHTML = ""; // Clear old entries
+
     users.forEach(user => {
-      const row = document.createElement("div");
-      row.className = "user-row";
-  
-      const isAdmin = user.role === "admin";
-      const promoteOrDemoteBtn = isAdmin
+        const row = document.createElement("div");
+        row.className = "user-row";
+
+        const isAdmin = user.role === "admin";
+        const promoteOrDemoteBtn = isAdmin
         ? `<button class="btn btn-sm btn-outline-secondary demote-user" data-user="${user.username}">Demote</button>`
         : `<button class="btn btn-sm btn-success promote-user" data-user="${user.username}">Promote</button>`;
-  
-      row.innerHTML = `
+
+        row.innerHTML = `
         <span><strong>${user.username}</strong></span>
         <span>${user.email}</span>
         <span class="actions">${promoteOrDemoteBtn}</span>
         <span class="actions">
-          <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
+            <button class="btn btn-sm btn-danger delete-user" data-user="${user.username}">Delete</button>
         </span>
-      `;
-      container.appendChild(row);
+        `;
+        container.appendChild(row);
     });
-  };
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return; // No token means no login
-  
-    const decoded = parseJwt(token); // Decode JWT to get role
-    console.log("Decoded Token:", decoded); // Debugging check
-  
-    if (decoded.role === "admin") {
-      document.getElementById("display-users").style.display = "block";
-      
-      document.getElementById("user-list").style.display = "block";
-      fetchUsers(); // Load user list
-    }
-  });
-  

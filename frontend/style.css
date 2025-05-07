@@ -1,3 +1,4 @@
+
 .btn-bd-primary {
     --bs-btn-font-weight: 600;
     --bs-btn-color: var(--bs-white);
@@ -27,6 +28,11 @@ body {
     margin: 30px 0 20px;
     text-align: center;
   }
+
+  .hidden {
+    display: none;
+  }
+  
 
   /* ===Admin Panel === */
   .admin-panel {
@@ -100,6 +106,7 @@ body {
 .completed {
   background-color: #e3ffe8; /* Green */
 }
+
 
 /* 
 ADMIN CONTROLS:

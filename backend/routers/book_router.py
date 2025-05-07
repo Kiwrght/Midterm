@@ -34,14 +34,14 @@ async def create_book(book_data: BookRequest, user=Depends(get_user)):
 
 
 # Admin only route to get all books
-@book_router.get("")
+@book_router.get("/all-books", response_model=list[Book])
 async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[Book]:
     if not user or not user.username:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Please login.",
         )
-    if not user.role != "AdminUser":
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"User {user.username} does not have permission to access this resource.",
