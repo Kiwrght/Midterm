@@ -61,7 +61,18 @@ async def signup(user: UserRequest) -> dict:
     )
 
     await new_user.create()
-    return {"message": "User created successfully"}
+
+    access_token = create_access_token(
+        {"username": new_user.username, "role": new_user.role}
+    )
+
+    print("Generated Token:", access_token)  # Debugging statement
+
+    return {
+        "access_token": access_token,
+        "role": new_user.role,
+        "message": "User created successfully",
+    }
 
 
 # login route
@@ -139,7 +150,9 @@ async def reset_password(
     return {"message": "Password reset successfully"}
 
 
+####################################################################################
 ### Admin User Management Routes ###
+####################################################################################
 # Get all users route ADMIN ONLY
 @user_router.get("/all", response_model=List[UserDto])
 async def get_all_users(current_user: Annotated[TokenData, Depends(get_user)]):
