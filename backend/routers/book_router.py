@@ -30,9 +30,10 @@ OPEN_LIBRARY_URL = "https://openlibrary.org/api/books"
 book_router = APIRouter()
 
 books_list = []  # List to store books
-max_id: int = 0  # Variable to store the maximum ID of the book
 
 
+# ** POSTING METHODS **#
+# Route to add a new book
 @book_router.post("/", response_model=Book, status_code=status.HTTP_201_CREATED)
 async def create_book(book_data: BookRequest, user=Depends(get_user)):
     logger.info(f"{user.username} is trying to add a Book")
@@ -50,6 +51,7 @@ async def create_book(book_data: BookRequest, user=Depends(get_user)):
     return book
 
 
+# route to upload a cover image
 @book_router.post("/upload")
 async def upload_cover(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
@@ -72,6 +74,7 @@ async def upload_cover(file: UploadFile = File(...)):
         )
 
 
+# ** GETTING METHODS **#
 # Admin only route to get all books
 @book_router.get("/all-books", response_model=list[Book])
 async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[Book]:
@@ -152,6 +155,7 @@ async def get_book_by_id(
     return book.dict(by_alias=True)
 
 
+# *** PUTTING METHODS **#
 @book_router.put("/{book_id}", response_model=Book)
 async def update_book(
     book_id: PydanticObjectId,
@@ -192,6 +196,7 @@ async def update_book(
     return updated_book.dict(by_alias=True)
 
 
+# ** DELETING METHODS **#
 @book_router.delete("/{book_id}")
 async def delete_book(
     book_id: PydanticObjectId, user: Annotated[TokenData, Depends(get_user)]
