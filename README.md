@@ -1,12 +1,13 @@
 # Bookkeepr
 
-Bookkeepr is a book tracking web application that allows users to create an account, log in, and track the books they are reading, have completed, and want to read. They are able to rate each book, assign a genre, give it a descriptive rating, assign a reading status, track the author, and upload a picture as a cover photo.
+Bookkeepr is a book tracking web application that allows users to create an account, log in, and track books they are reading, have completed, or want to read. Users can rate each book, assign a genre, add a review, set a reading status, track the author, and upload a cover photo.
 
 
 ## Update
 
 Instead of storing book and user information in memory, the app now securely stores data in a real MongoDB database. This update also inclues account registration and login, unique user and admin functions, an ISBN API for organization and filtering, and an optional picture upload for the book logs.
 
+---
 
 ## Overview
 - ### Database integration
@@ -15,43 +16,81 @@ Migrated all book and user data from in-memory storage to MongoDB Atlas using Fa
 - ### User Authentication 
 Added a user login system using JWT (JSON Web Tokens) for authentication. Users can register and securely log in to manage their books.
 
-
-## File Structure
-- ### Front End
-```index.html``` , ```login.html``` , ```script.js``` , ```style.css``` : Used to style the app using HTML, JavaScript, and CSS.
-
-Bootstrap5 and custom CSS were used to build the design and create enhancements in the app.
-
-- ### Back End
-```main.py```:
-- #### Models
-```__init__.py``` , ```book_model.py``` , ```my_config.py``` , ```todo.py``` , ```user_model.py```:
-- ### Routers
-```book_router.py``` , ```todo_routes.py``` , ```user_router.py```:
-- ### Auth
-```jwt_auth.py```:
-- ### DB
-```data_base.py```:
-
-
-Data models in this app are built with Pydantic for request validation and Beanie for MongoDB document modeling. This allows structured data validation and direct interaction with the MongoDB database.
-
+---
 
 ## Features
-Every user:
-- Book management: Adding, editing, and deleting books within the collection.
-- Filtering: Ability to filter books based on reading status.
-- ISBN search: 
-- Rating system: Rate a book based on a scale of 1–5.
-- Color coding: Visual status indication with different card colors based on the user's reading status.
+All Users:
+- Add, update, delete, and view books
+- Search books via Open Library ISBN API
+- Upload custom cover images
+- Filter books by reading status
+- Rate books from 1–5
+- Color-coded cards based on book status
 
-Admins:
-- User database: Admins can promote or demote user permissions and delete users entirely.
+Admins Only:
+- View all registered users
+- View all books in the system
+- Promote / Demote user roles
+- Delete users
 
+---
+
+## File Structure
+
+### Frontend
+
+`index.html`, `login.html`, `script.js`, `style.css`
+
+These files make up the core user interface using HTML, JavaScript, and CSS.  
+Bootstrap 5 and custom CSS are used for layout and styling enhancements.
+
+---
+
+### Backend
+
+`main.py`
+ 
+The entry point of the FastAPI server. Serves frontend files, connects to MongoDB, and registers API routes.
+
+
+#### Models (`models/`)
+
+`__init__.py` `book_model.py` `user_model.py` `todo.py` `my_config.py`
+  
+Defines the application's core data structures using Pydantic and Beanie.
+
+
+#### Routers (`routers/`)
+
+`book_router.py` `todo_routes.py` `user_router.py`
+
+Handles all API routing logic.
+
+
+#### Authentication (`auth/`) 
+
+`jwt_auth.py` 
+
+Manages JWT token creation and validation for secure authentication.
+
+
+#### Database (`db/`)
+
+`data_base.py`
+
+Connects to MongoDB via Beanie and registers document models.
+
+
+### Tech Stack Notes
+- **Pydantic**: Ensures data validation for incoming requests.
+- **Beanie**: ODM layer used to interact with MongoDB through FastAPI.
+
+---
 
 ## Acknowledgements
-We would like to acknowledge Professor Changhui Xu and Teaching Assistant Maaz Bin Musa for assistance on this project. As well as FastAPI for the backend framework, MongoDB for the database, Bootstrap for front-end Styling, and https://openlibrary.org/ for their ISBN API.
+We would like to acknowledge Professor Changhui Xu and Teaching Assistant Maaz Bin Musa for assistance on this project. 
 
+_This app was built using FastAPI, MongoDB Atlas, Beanie ODM, Bootstrap 5, Open Library API (https://openlibrary.org/)_
 
 
 
