@@ -30,7 +30,7 @@ document.getElementById("login-form").addEventListener("submit", (event) => {
                 localStorage.setItem("user_role", data.role);
                 showLoggedInUser(username);
                 alert("Logged in successfully!");
-                window.location.href = "index.html"; // Redirect after successful login
+                window.location.href = "/"; // Redirect after successful login
             } else {
                 const error = JSON.parse(xhr.responseText);
                 console.error("Login error:", error);
@@ -79,15 +79,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
-                if (xhr.status === 201) {
+                if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     console.log("Signup successful! Stored Role:", data.role); // Debug log
-
                     localStorage.setItem("access_token", data.access_token);
                     localStorage.setItem("user_role", data.role);
 
                     alert("Account created successfully! Redirecting...");
-                    window.location.href = "index.html"; // Redirect after storing data
+                    window.location.href = "/"; // Redirect after storing data
                 } else {
                     const error = JSON.parse(xhr.responseText);
                     console.error("Signup Error:", error);
