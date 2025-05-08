@@ -58,6 +58,7 @@ function getBooks() {
     xhr.send();
 }
 
+/* IMAGE UPLOAD */
 //Upload image function
 const uploadCoverImage = (file, token) => {
     console.log("File to upload:", file);

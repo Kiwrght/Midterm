@@ -1,6 +1,6 @@
 console.log("auth.js has loaded!");
 
-document.getElementById("login-form").addEventListener("submit", async (event) => {
+document.getElementById("login-form").addEventListener("submit", (event) => {
     event.preventDefault();
     
     const username = document.getElementById("username").value.trim();
@@ -11,43 +11,35 @@ document.getElementById("login-form").addEventListener("submit", async (event) =
         document.getElementById("error-message").classList.remove("hidden");
         return;
     }
-    
-     //formatting credentials
+
+    // Formatting credentials
     const formBody = new URLSearchParams();
     formBody.append("username", username);
     formBody.append("password", password);
 
-    // sending POST request to backend login route
-    // calling exact route
-    console.log("Sending login request with:", JSON.stringify({ username, password }));
-    fetch('http://localhost:8000/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formBody,
-    })
+    // Sending POST request to backend login route using XHR
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:8000/users/login", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    .then(async res => {
-        if (!res.ok){
-        const data = await res.json();
-            throw new Error(data.detail || "Login failed");
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                localStorage.setItem("access_token", data.access_token);
+                localStorage.setItem("user_role", data.role);
+                showLoggedInUser(username);
+                alert("Logged in successfully!");
+                window.location.href = "index.html"; // Redirect after successful login
+            } else {
+                const error = JSON.parse(xhr.responseText);
+                console.error("Login error:", error);
+                alert(error.detail || "Login failed.");
+            }
         }
-        return res.json();
-    })
-    // save token, update page
-    .then(data => {
-        localStorage.setItem("access_token", data.access_token);
-        showLoggedInUser(username);
-        alert("Logged in successfully!");
-        localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("user_role", data.role);
-        
-        window.location.href = "index.html"; // Redirect after successful login
-    })
-    .catch(error => {
-        console.error("Login error:", error);
-        alert(error.message || "Login failed.");
-    });
-    
+    };
+
+    xhr.send(formBody);
 });
 
 function showLoggedInUser(username) {
@@ -60,49 +52,51 @@ function showLoggedInUser(username) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const createAccountButton = document.getElementById("create-account-button");
+    const createAccountButton = document.getElementById("create-account-button");
 
-  if (!createAccountButton) {
-      console.error("Create Account button NOT found!");
-      return;
-  }
+    if (!createAccountButton) {
+        console.error("Create Account button NOT found!");
+        return;
+    }
 
-  createAccountButton.addEventListener("click", async (event) => {
-      event.preventDefault();
-      console.log("Create account button clicked!"); // Debugging check
+    createAccountButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        console.log("Create account button clicked!"); // Debugging check
 
-      const username = document.getElementById("new-username").value.trim();
-      const email = document.getElementById("new-email").value.trim();
-      const password = document.getElementById("new-password").value;
+        const username = document.getElementById("new-username").value.trim();
+        const email = document.getElementById("new-email").value.trim();
+        const password = document.getElementById("new-password").value;
 
-      if (!username || !password || !email) {
-          alert("Please fill in all fields.");
-          return;
-      }
+        if (!username || !password || !email) {
+            alert("Please fill in all fields.");
+            return;
+        }
 
-      try {
-          const response = await fetch("http://localhost:8000/users/signup", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, email, password })
-          });
+        // Sending POST request to backend signup route using XHR
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8000/users/signup", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
 
-          const data = await response.json();
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 201) {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log("Signup successful! Stored Role:", data.role); // Debug log
 
-          if (!response.ok) {
-              throw new Error(data.detail || "Signup failed.");
-          }
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("user_role", data.role);
 
-          console.log("Signup successful! Stored Role:", data.role); // Debug log
+                    alert("Account created successfully! Redirecting...");
+                    window.location.href = "index.html"; // Redirect after storing data
+                } else {
+                    const error = JSON.parse(xhr.responseText);
+                    console.error("Signup Error:", error);
+                    alert(error.detail || "Could not create account on the server.");
+                }
+            }
+        };
 
-          localStorage.setItem("access_token", data.access_token);
-          localStorage.setItem("user_role", data.role);
-
-          alert("Account created successfully! Redirecting...");
-          window.location.href = "index.html"; // Redirect after storing data
-      } catch (error) {
-          console.error("Signup Error:", error);
-          alert(error.message || "Could not create account on the server.");
-      }
-  });
+        const requestBody = JSON.stringify({ username, email, password });
+        xhr.send(requestBody);
+    });
 });
