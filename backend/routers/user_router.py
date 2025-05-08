@@ -183,6 +183,22 @@ async def promote_user(
     return {"message": f"User '{username}' promoted to admin."}
 
 
+@user_router.put("/{username}/demote")
+async def promote_user(
+    username: str, current_user: Annotated[TokenData, Depends(get_user)]
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    user = await User.find_one(User.username == username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = ""
+    await user.save()
+    return {"message": f"User '{username}' demoted  to user."}
+
+
 # Delete a user (admin only)
 @user_router.delete("/{username}")
 async def delete_user(

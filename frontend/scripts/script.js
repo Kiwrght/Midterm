@@ -257,6 +257,12 @@ const updateBook = (_id) => {
     const token = localStorage.getItem("access_token");
     const existingCoverImage = document.getElementById('cover-preview').src;
 
+    // Validate required fields
+    if (!title || !author || !genre || isNaN(rating) || rating < 1 || rating > 5) {
+        alert("Please fill in all required fields and ensure the rating is between 1 and 5.");
+        return;
+    }
+
     uploadCoverImage(file, token).then((coverImageBase64) => {
         const bookData = {
             title,
@@ -267,6 +273,13 @@ const updateBook = (_id) => {
             review,
             cover_image: coverImageBase64 || existingCoverImage,
         };
+
+        // Update the cover preview dynamically
+        if (coverImageBase64) {
+            const coverPreview = document.getElementById('cover-preview');
+            coverPreview.src = coverImageBase64;
+            coverPreview.style.display = 'block';
+        }
 
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", `${api}/${_id}`, true);
@@ -685,55 +698,56 @@ document.addEventListener("click", async (event) => {
     if (target.classList.contains("delete-user")) {
         const username = target.dataset.user;
         console.log(`Deleting user: ${username}`);
-        await deleteUser(username);  // Delete user
+         deleteUser(username);  // Delete user
     }
 });
 
-const updateUserRole = async (username, newRole) => {
+const updateUserRole = (username, newRole) => {
     const token = localStorage.getItem("access_token");
 
-    try {
-        const response = await fetch(`http://localhost:8000/users/${username}/promote`, {  
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${token}`
+    const xhr = new XMLHttpRequest();
+    const endpoint = newRole === "admin" ? "promote" : "demote";
+
+    console.log(`Updating role for ${username} to ${newRole}`); // Debugging
+
+    xhr.open("PUT", `http://localhost:8000/users/${username}/${endpoint}`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                console.log(`${newRole === "admin" ? "Promoted" : "Demoted"} ${username}`);
+                fetchUsers(); // Refresh the user list
+            } else {
+                console.error(`Failed to ${newRole === "admin" ? "promote" : "demote"} user: ${xhr.statusText}`);
+                alert(`Failed to ${newRole === "admin" ? "promote" : "demote"} user.`);
             }
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to promote user.");
         }
+    };
 
-        console.log(`Promoted ${username} to Admin`);
-        fetchUsers();
-
-    } catch (error) {
-        console.error("Error promoting user:", error);
-        alert(error.message);
-    }
+    xhr.send();
 };
 
-const deleteUser = async (username) => {
+const deleteUser = (username) => {
     const token = localStorage.getItem("access_token");
 
-    try {
-        const response = await fetch(`http://localhost:8000/users/${username}`, {  
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`
+    const xhr = new XMLHttpRequest();
+    xhr.open("DELETE", `http://localhost:8000/users/${username}`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                console.log(`Deleted user: ${username}`);
+                fetchUsers(); // Refresh the user list
+            } else {
+                console.error(`Failed to delete user: ${xhr.statusText}`);
+                alert("Failed to delete user.");
             }
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete user.");
         }
+    };
 
-        console.log(` Deleted user: ${username}`);
-        fetchUsers();  // Refresh user list after deletion
-    } catch (error) {
-        console.error(" Error deleting user:", error);
-        alert(error.message);
-    }
+    xhr.send();
 };
 
 // load books and initialize event listeners when the page loads
