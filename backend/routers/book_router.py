@@ -196,6 +196,7 @@ async def update_book(
 async def delete_book(
     book_id: PydanticObjectId, user: Annotated[TokenData, Depends(get_user)]
 ) -> dict:
+    logger.info(f"{user.username} is trying to delete a Book")
     book_to_delete = await Book.get(book_id)
     if not book_to_delete:
         raise HTTPException(
@@ -210,4 +211,5 @@ async def delete_book(
 
     # Delete the book from the database
     await book_to_delete.delete()
+    logger.info(f"Book with ID={book_id} deleted successfully")
     return {"message": f"Book with ID={book_id} was deleted successfully"}

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from models.user_model import User, UserRequest, UserDto
+import logging
 
 from auth.jwt_auth import (
     LoginResult,
@@ -52,6 +53,7 @@ async def signup(user: UserRequest) -> dict:
             detail="Username already registered",
         )
 
+    logging.info(f"Creating new user: {user.username}")  # Debugging statement
     # Create new user with hashed password
     hashed_password = hash_password.create_hash(user.password)
     new_user = User(
@@ -61,7 +63,7 @@ async def signup(user: UserRequest) -> dict:
     )
 
     await new_user.create()
-
+    logging.info(f"User created: {new_user.username}")  # Debugging statement
     access_token = create_access_token(
         {"username": new_user.username, "role": new_user.role}
     )
@@ -80,6 +82,7 @@ async def signup(user: UserRequest) -> dict:
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> LoginResult:
+    logging.info(f"Login attempt for user: {form_data.username}")  # Debugging statement
     ## Authenticate user by verifying the user in the database
     username = form_data.username
     existing_user = await User.find_one({"username": username})
@@ -95,12 +98,15 @@ async def login_for_access_token(
     if authenticated:
         # update the last login time
         existing_user.lastLogin = datetime.now()
+        logging.info(
+            f"User {existing_user.username} logged in at {existing_user.lastLogin}"
+        )
         await existing_user.save()
 
         # Create access token if authentication is successful
         access_token = create_access_token(
             data={"username": existing_user.username, "role": existing_user.role},
-            expires_delta=timedelta(minutes=60),
+            expires_delta=timedelta(minutes=30),
         )
         return LoginResult(
             access_token=access_token,
@@ -124,6 +130,14 @@ async def logout(current_user: Annotated[dict, Depends(get_user)]) -> dict:
     user = await User.find_one({"username": current_user["username"]})
 
     print(f"Found user: {user.username}")
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    logging.info(
+        f"Logging out user: {user.username} at {datetime.now()}"
+    )  # Debugging statement
     user.lastLogout = datetime.now()
     await user.save()
 
@@ -187,6 +201,7 @@ async def promote_user(
 async def promote_user(
     username: str, current_user: Annotated[TokenData, Depends(get_user)]
 ):
+    logging.info(f"Demoting user: {username}")  # Debugging statement
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -196,6 +211,7 @@ async def promote_user(
 
     user.role = ""
     await user.save()
+    logging.info(f"User '{username}' demoted to user.")
     return {"message": f"User '{username}' demoted  to user."}
 
 
