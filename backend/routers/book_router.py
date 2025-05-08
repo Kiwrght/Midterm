@@ -12,7 +12,6 @@ from fastapi import (
     UploadFile,
     requests,
     status,
-    Query,
 )
 from auth.jwt_auth import TokenData
 from routers.user_router import get_user
@@ -20,6 +19,9 @@ from models.book_model import Book, BookRequest
 import xml.etree.ElementTree as ET
 import re
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # The Open Library API URL for fetching book details
@@ -33,6 +35,7 @@ max_id: int = 0  # Variable to store the maximum ID of the book
 
 @book_router.post("/", response_model=Book, status_code=status.HTTP_201_CREATED)
 async def create_book(book_data: BookRequest, user=Depends(get_user)):
+    logger.info(f"{user.username} is trying to add a Book")
     print(f"Received book data: {book_data.dict()}")
     book_dict = book_data.dict()
     book_dict["cover_image"] = book_data.cover_image
@@ -41,6 +44,8 @@ async def create_book(book_data: BookRequest, user=Depends(get_user)):
     print(
         f"Saving book with cover: {book.cover_image} and review: {book.review}"
     )  # Debugging
+
+    logger.info(f"New Book Created: {book.title}")
     await book.insert()
     return book
 
@@ -85,9 +90,7 @@ async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[B
 
 
 @book_router.get("/books/search")
-async def search_books(
-    query: str, current_user: Annotated[TokenData, Depends(get_user)]
-) -> dict:
+async def search_books(query: str) -> dict:
 
     is_isbn = re.fullmatch(r"[\d-]{10,13}", query)  # Detects 10 or 13-digit ISBNs
 

@@ -19,11 +19,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # on startup
     print("Starting up...")
+    logger.info("Starting up...")
     # Initialize the database connection
     await init_db()
     yield
     # on shutdown
     print("Shutting down...")
+    logger.info("Shutting down...")
 
 
 app = FastAPI(title="BookKeepr", version="0.1.0", lifespan=lifespan)
