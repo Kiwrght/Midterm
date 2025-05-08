@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function getBooks(){
+function getBooks() {
     const token = localStorage.getItem("access_token");
     if (!token) {
         alert("You need to log in before accessing books.");
@@ -40,51 +40,56 @@ function getBooks(){
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
         if (xhr.readyState == 4) {
-            if (xhr.status == 200){
+            if (xhr.status == 200) {
                 books.length = 0; // Reset books array before adding new ones
                 books.push(...JSON.parse(xhr.responseText)); // Store books globally
                 console.log("Books Stored Locally:", books); // Debugging check
-                // const books = JSON.parse(xhr.responseText);
-                // console.log("Fetched Books fromAPI:", books);
                 displayBooks(books);
+            } else if (xhr.status == 401) {
+                alert("Please log in to view books");
+                window.location.href = "login.html"; // Redirect to login
+            } else {
+                console.error(`Error fetching books: ${xhr.status} ${xhr.statusText}`);
             }
-        } else if (xhr.status == 401) {
-            // Unauthorized - redirect to login
-            alert("Please log in to view books");
         }
-    }; 
+    };
     xhr.open('GET', `${api}/my-books`, true);
-    if(token){
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    }
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send();
 }
 
 //Upload image function
 const uploadCoverImage = (file, token) => {
+    console.log("File to upload:", file);
     if (!file) return Promise.resolve(null); // No file? Return `null` immediately
 
     const formData = new FormData();
     formData.append("file", file);
 
-    return fetch("http://localhost:8000/books/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error("Error uploading image: " + response.statusText);
-        return response.json();
-    })
-    .then(uploadData => uploadData.cover_image)  // Return the uploaded image URL
-    .catch(error => {
-        console.error("Image Upload Failed:", error);
-        alert(`Error uploading image: ${error.message}`);
-        return null;  // Return `null` if upload fails
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8000/books/upload", true);
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    resolve(response.cover_image); // Return the uploaded image URL
+                } else {
+                    console.error("Error uploading image:", xhr.statusText);
+                    alert(`Error uploading image: ${xhr.statusText}`);
+                    reject(new Error(xhr.statusText));
+                }
+            }
+        };
+
+        xhr.send(formData);
     });
 };
 
-// post book function
+/* ADDING BOOK FUNCTIONALITY */
+// This function is called when the user clicks the "Add Book" button
 const postBook = () => {
     const title = document.getElementById('book-title').value.trim();
     const author = document.getElementById('book-author').value.trim();
@@ -94,184 +99,199 @@ const postBook = () => {
     const review = document.getElementById('book-review').value.trim();
     const fileInput = document.getElementById('book-cover');
     const file = fileInput?.files[0];
-    
+
     const token = localStorage.getItem("access_token");
     if (!token) {
         alert("You need to log in before adding a book.");
         return false;
     }
-    // Improved validation with custom error display
+
     let errorMessage = "";
     if (!title) errorMessage = "Please enter a book title.";
     else if (!author) errorMessage = "Please enter an author name.";
     else if (!genre) errorMessage = "Please enter a genre.";
     else if (isNaN(rating) || rating < 1 || rating > 5) errorMessage = "Please enter a rating between 1 and 5.";
-    
+
     if (errorMessage) {
         alert(errorMessage);
-        return false; // Prevent form submission
+        return false;
     }
 
-    // uploadCoverImage(file, token)
-    // .then((coverImageBase64) => {
-    //     console.log("uploaded cover image:", coverImageBase64); // Debugging check
-    //     const bookData = { title, author, genre, book_status, rating,
-    //          review, cover_image: coverImageBase64
-    //     };
-
-    //     return fetch('http://localhost:8000/books/', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'Authorization':  `Bearer ${token}`
-    //             },
-    //             body: JSON.stringify(bookData)
-    //         });
-    // })
-    // .then(response => {
-    //     console.log("Response Status:", response.status);
-    //     console.log("Response Headers:", response.headers);
-        
-    //     if (!response.ok) {
-    //         throw new Error('Network response was not ok ' + response.statusText);
-    //     }
-    
-    //     return response.json();
-    // })
     uploadCoverImage(file, token).then((coverImageBase64) => {
-        console.log("Uploaded cover image:", coverImageBase64); // Debugging check
         const bookData = {
             title, author, genre, book_status, rating, review, cover_image: coverImageBase64,
         };
 
-        return fetch("http://localhost:8000/books/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(bookData),
-        });
-    })
-    .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok " + response.statusText);
-        return response.json();
-    })
-    .then(() => {
-        alert("Book added successfully!");
-        getBooks(); // Reload books
-        resetModal();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
-        modal.hide(); // Close modal after saving
-    })
-    .catch(error => {
-        console.error('Error Adding Book:', error);
-        alert(`Error adding book: ${error.message}`);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8000/books/", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 201) {
+                    alert("Book added successfully!");
+                    getBooks(); // Reload books
+                    resetModal();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+                    modal.hide(); // Close modal after saving
+                } else {
+                    console.error("Error adding book:", xhr.statusText);
+                    alert(`Error adding book: ${xhr.statusText}`);
+                }
+            }
+        };
+
+        xhr.send(JSON.stringify(bookData));
+    }).catch(error => {
+        console.error("Error uploading cover image:", error);
     });
 
-    
-    return true; // Indicate successful submission
+    return true;
 };
+
+//This is the function that is called when the user clicks the "Add Book" button for searched books
+const addBookToDatabase = (book) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("You need to log in before adding a book.");
+        return;
+    }
+
+    // Prepare the book data for the backend
+    const bookData = {
+        title: book.title || "Unknown Title",
+        author: book.author || "Unknown Author",
+        genre: book.genre || "Unknown Genre",
+        book_status: "to-read", // Default status for new books
+        rating: 0, // Default rating
+        review: "", // Default review
+        cover_image: book.cover_image || null, // Use the cover image if available
+    };
+
+    // Convert the book data to JSON
+    const jsonData = JSON.stringify(bookData);
+
+    // Create a new XMLHttpRequest
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:8000/books/", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    // Handle the response
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 201) {
+                alert("Book added successfully!");
+                getBooks(); // Reload the user's books
+            } else {
+                console.error("Error adding book to database:", xhr.statusText);
+                alert(`Error adding book: ${xhr.statusText}`);
+            }
+        }
+    };
+
+    // Send the request with the JSON data
+    xhr.send(jsonData);
+};
+
+
+/* EDIT/UPDATE FUNCTIONALITY */
 
 // Generates the editing modal and populates it with the book data
 // This function is called when the user clicks the "Edit Book" button
 const editBook = (_id) => {
-
     console.log(`Editing book ID=${_id}`);
-   
 
+    const token = localStorage.getItem("access_token");
     const xhr = new XMLHttpRequest();
-     xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                let parser = new DOMParser();
-                let xmlDoc = parser.parseFromString(xhr.responseText, "application/xml");
-
-                const book = {
-                    title: xmlDoc.getElementsByTagName("title")[0]?.textContent || "",
-                    author: xmlDoc.getElementsByTagName("author")[0]?.textContent || "",
-                    genre: xmlDoc.getElementsByTagName("genre")[0]?.textContent || "",
-                    book_status: xmlDoc.getElementsByTagName("status")[0]?.textContent || "reading",
-                    rating: xmlDoc.getElementsByTagName("rating")[0]?.textContent || "0",
-                    review: xmlDoc.getElementsByTagName("review")[0]?.textContent || "",
-                    cover_image: xmlDoc.getElementsByTagName("cover_image")[0]?.textContent || ""
-                };
-
-                book.book_status = book.book_status.includes("BookStatus.") ? book.book_status.split(".")[1] : book.book_status;
-
-                console.log("Fetched Book Data:", book);
-
-                // Populate modal with book data before opening it
-                document.getElementById('book-title').value = book.title;
-                document.getElementById('book-author').value = book.author;
-                document.getElementById('book-genre').value = book.genre;
-                document.getElementById('book-status').value = book.book_status;
-                document.getElementById('book-rating').value = book.rating;
-                document.getElementById('book-review').value = book.review;
-                document.getElementById('book-cover').value = book.cover_image; // Set cover image if available
-                document.getElementById('book-id').value = _id;  // Store the ID for saving
-
-                console.log("Corrected Book Status:", book.book_status);
-
-                // Open the modal after setting values
-                const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-                modal.show();   
-                console.log("Modal opened with book data:", book);
-
-            } else {ook
-                console.error(`Error updating book: ${xhr.status} ${xhr.statusText}`);
-            }
-        }
-    };
-
     xhr.open("GET", `${api}/${_id}`, true);
-    xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
-    xhr.send();
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
-};
-
-//Update book function will send the updated book data to the backend
-// This function is called when the user clicks the "Save" button in the modal
-const updateBook = (_id) => {
-    console.log(`Updating Book ID=${_id}`);
-    let rawStatus = document.getElementById("book-status").value.trim();
-    let correctedStatus = rawStatus.includes("BookStatus.") ? rawStatus.split(".")[1] : rawStatus || "reading";
-
-    console.log(`Corrected book_status being sent: ${correctedStatus}`);
-
-    // Debugging: Check final formatted status before sending
-    console.log(`Received corrected book_status: ${correctedStatus}`);
-    // Build XML body for the request
-    // Build XML body correctly
-    const updatedBookXML = `<?xml version="1.0" encoding="UTF-8"?>
-        <book>
-            <title>${document.getElementById('book-title').value.trim()}</title>
-            <author>${document.getElementById('book-author').value.trim()}</author>
-            <genre>${document.getElementById('book-genre').value.trim()}</genre>
-            <status>${correctedStatus}</status>
-            <rating>${document.getElementById('book-rating').value.trim()}</rating>
-        </book>
-    `;
-
-    const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-                console.log(`Updated Book ID=${_id}`);
-                getBooks();  // Refresh book list after update
+                const book = JSON.parse(xhr.responseText);
+                console.log("Fetched Book Data:", book);
 
+                document.getElementById('book-title').value = book.title || 'Untitled';
+                document.getElementById('book-author').value = book.author || 'Unknown';
+                document.getElementById('book-genre').value = book.genre || 'Unknown';
+                document.getElementById('book-status').value = book.book_status || 'reading';
+                document.getElementById('book-rating').value = book.rating || 0;
+                document.getElementById('book-review').value = book.review || '';
+                document.getElementById('book-id').value = _id;
 
+                const coverPreview = document.getElementById('cover-preview');
+                if (book.cover_image) {
+                    coverPreview.src = book.cover_image;
+                    coverPreview.style.display = 'block';
+                } else {
+                    coverPreview.style.display = 'none';
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                modal.show();
             } else {
-                console.error(`Error updating book: ${xhr.status} ${xhr.statusText}`);
-                console.log("Server response:", xhr.responseText);
+                console.error("Error fetching book details:", xhr.statusText);
+                alert(`Error fetching book details: ${xhr.statusText}`);
             }
         }
     };
-    console.log("Final XML being sent:", updatedBookXML);
-    xhr.open("PUT", `${api}/${_id}`, true);
-    xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
-    xhr.setRequestHeader("Content-Type", "application/xml"); 
-    xhr.send(updatedBookXML); 
+
+    xhr.send();
 };
 
+const updateBook = (_id) => {
+    console.log(`Updating Book ID=${_id}`);
 
+    const title = document.getElementById('book-title').value.trim();
+    const author = document.getElementById('book-author').value.trim();
+    const genre = document.getElementById('book-genre').value.trim();
+    const book_status = document.getElementById('book-status').value;
+    const rating = parseInt(document.getElementById('book-rating').value);
+    const review = document.getElementById('book-review').value.trim();
+    const fileInput = document.getElementById('book-cover');
+    const file = fileInput?.files[0];
+
+    const token = localStorage.getItem("access_token");
+    const existingCoverImage = document.getElementById('cover-preview').src;
+
+    uploadCoverImage(file, token).then((coverImageBase64) => {
+        const bookData = {
+            title,
+            author,
+            genre,
+            book_status,
+            rating,
+            review,
+            cover_image: coverImageBase64 || existingCoverImage,
+        };
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", `${api}/${_id}`, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    alert("Book updated successfully!");
+                    getBooks(); // Reload books
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('exampleModal'));
+                    modal.hide(); // Close modal after saving
+                } else {
+                    console.error("Error updating book:", xhr.statusText);
+                    alert(`Error updating book: ${xhr.statusText}`);
+                }
+            }
+        };
+
+        xhr.send(JSON.stringify(bookData));
+    }).catch(error => {
+        console.error("Error uploading cover image:", error);
+    });
+};
 
 // delete book function
 const deleteBook = (_id) => {
@@ -310,8 +330,8 @@ const formatStatus = (status) => {
       .join('-');
 };
 
-
-// display books function
+/* DISPLAY FUNCTIONALITY */
+// display created books
 const displayBooks = (books) => {
     const bookList = document.getElementById('book-list');
     bookList.innerHTML = ''; // clears existing content
@@ -349,6 +369,42 @@ const displayBooks = (books) => {
         }
     });
 };
+
+// display searched books
+const displaySearchedBooks = (books) => {
+    const bookList = document.getElementById('book-list');
+    bookList.innerHTML = ''; // clears existing content
+
+    console.log("Books Passed to displayBooks:", books);
+    books.forEach((book) => {
+        const bookElement = document.createElement('div');
+        bookElement.className = `col-12 col-md-4 card mb-3 ${getCardColor(book.book_status)}`;
+        bookElement.innerHTML = `
+        <div class="card-body">
+        ${book.cover_image ? `
+            <img src="${book.cover_image}" 
+                 class="img-thumbnail" 
+                 style="max-width: 100px; max-height: 100px; float: left; margin-right: 10px;" 
+                 alt="Book Cover" />
+        ` : ''}
+            <h3 class="card-title">${book.title}</h3>
+            <p class="card-text">Author: ${book.author}</p>
+           <p class="card-text">Genre: ${book.genre}</p>
+            <button class="btn btn-success add-btn" 
+                Add Book
+            </button>
+        </div>
+    `;
+        bookList.appendChild(bookElement);
+
+        // Add event listener for the "Add Book" button
+        bookElement.querySelector(".add-btn").addEventListener("click", () => {
+            addBookToDatabase(book); // Pass the entire book object
+        });
+    });
+
+};
+
 
 // Helper function to set color based on status
 const getCardColor = (status) => {
@@ -437,30 +493,67 @@ const initializeEventListeners = () => {
 
 /* SEARCH FUNCTIONALITY */
 const searchBooks = async (query) => {
-    const encodedQuery = encodeURIComponent(query); 
-    const token = localStorage.getItem("access_token"); 
+    const encodedQuery = encodeURIComponent(query.trim());
 
     try {
-        const response = await fetch(`http://localhost:8000/books/search?query=${encodedQuery}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        let url;
+        // Determine the search type based on the query
+        if (/^\d{10,13}$/.test(query)) {
+            // Query is a 10- or 13-digit number, treat it as ISBN
+            url = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodedQuery}&format=json&jscmd=data`;
+        } else if (query.includes(" ")) {
+            // Query contains spaces, treat it as a title
+            url = `https://openlibrary.org/search.json?title=${encodedQuery}`;
+        } else {
+            // Query is a single word, treat it as an author
+            url = `https://openlibrary.org/search.json?author=${encodedQuery}`;
+        }
 
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error("Error fetching books.");
         }
 
-        const books = await response.json();
-        
-        // Check for empty or missing results
-        if (!books || (Array.isArray(books) && books.length === 0)) {
-            alert("No books found.");
-            return;
-        }
+        const data = await response.json();
 
-        console.log(" Search results:", books); //  Debugging output
-        displayBooks(books);
+        // Handle ISBN search results
+        if (/^\d{10,13}$/.test(query)) {
+            const bookKey = `ISBN:${query}`;
+            const book = data[bookKey];
+            if (book) {
+                console.log("Fetched Book Details:", book);
+
+                // Display the book details or populate the form
+                displaySearchedBooks([{
+                    title: book.title || "Unknown Title",
+                    author: book.authors?.[0]?.name || "Unknown Author",
+                    genre: book.subjects?.[0] || "Unknown Genre",
+                    cover_image: book.cover?.medium || "",
+                }]);
+            } else {
+                alert("No book found for the given ISBN.");
+            }
+        } else {
+            // Handle Title or Author search results
+            const books = data.docs.map(book => ({
+                title: book.title || "Unknown Title",
+                author: book.author_name?.[0] || "Unknown Author",
+                genre: book.subject?.[0] || "Unknown Genre",
+                cover_image: book.cover_i
+                    ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+                    : "",
+            }));
+
+            if (books.length === 0) {
+                alert("No books found.");
+                return;
+            }
+
+            console.log("Search Results:", books);
+            displaySearchedBooks(books);
+        }
     } catch (error) {
-        console.error(" Error searching books:", error);
+        console.error("Error searching books:", error);
         alert(error.message);
     }
 };
@@ -504,32 +597,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Fetches all the users from the backend
 const fetchUsers = () => {
-fetch("http://localhost:8000/users/all", {
-    headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-})
-.then(response => response.json())
-.then(users => {
-    //console.log("User List:", users); // Debugging check
-    console.log("Calling populateUserList with users:", users); // Debugging check
-    populateUserList(users); // Populate the user list in the UI
+    const token = localStorage.getItem("access_token");
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://localhost:8000/users/all", true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
-})
-.catch(err => console.error("Error fetching users:", err));
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                const users = JSON.parse(xhr.responseText);
+                console.log("Calling populateUserList with users:", users);
+                populateUserList(users);
+            } else {
+                console.error("Error fetching users:", xhr.statusText);
+            }
+        }
+    };
+
+    xhr.send();
 };
 
 //populates all the books in the database
 const fetchAllBooks = () => {
-    fetch("http://localhost:8000/books/all-books", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-    })
-    .then(response => response.json())
-    .then(books => {
-        console.log("All Books in DB:", books);
-        displayBooks(books);
-    })
-    .catch(error => console.error("Error fetching books:", error));
-};
+    const token = localStorage.getItem("access_token");
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://localhost:8000/books/all-books", true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                const books = JSON.parse(xhr.responseText);
+                console.log("All Books in DB:", books);
+                displayBooks(books);
+            } else {
+                console.error("Error fetching books:", xhr.statusText);
+            }
+        }
+    };
+
+    xhr.send();
+};
   
 const populateUserList = (users) => {
     console.log("Populating users on UI:", users); 

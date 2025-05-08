@@ -1,10 +1,15 @@
+from enum import Enum
 from typing import Optional
 from beanie import Document
 from pydantic import BaseModel
 from datetime import datetime
 
-from models.todo import BookStatus
 
+
+class BookStatus(str, Enum):
+    reading = "reading"
+    to_read = "to-read"
+    completed = "completed"
 
 class Book(Document):
     title: str
