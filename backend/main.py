@@ -56,4 +56,3 @@ app.include_router(book_router, tags=["Books"], prefix="/books")
 
 
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
-# app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")  # Serve images
