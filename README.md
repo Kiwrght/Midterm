@@ -38,48 +38,52 @@ Admins Only:
 ## File Structure
 
 ### Frontend
-- **`index.html`**, **`login.html`**, **`script.js`**, **`style.css`**  
-  Core HTML, JavaScript, and CSS files that power the user interface.  
-  - **Styling** is done using **Bootstrap 5** and custom CSS for responsiveness and visual enhancements.
+
+`index.html`, `login.html`, `script.js`, `style.css`
+
+These files make up the core user interface using HTML, JavaScript, and CSS.  
+Bootstrap 5 and custom CSS are used for layout and styling enhancements.
+
+---
 
 ### Backend
 
-#### `main.py`  
-- Entry point of the FastAPI application.  
-- Serves frontend files, connects to the database, and registers all routers.
+`main.py`
+ 
+The entry point of the FastAPI server. Serves frontend files, connects to MongoDB, and registers API routes.
 
 
-#### Models (`models/`)
-Defines the structure and behavior of core application data using Pydantic and Beanie.
-- **`__init__.py`** – Initializes the models package.  
-- **`book_model.py`** – Schema and structure for book documents.  
-- **`user_model.py`** – Schema for user accounts and roles.  
-- **`todo.py`** – Enum for book status options (e.g., to-read, completed).  
-- **`my_config.py`** – Stores and manages environment/configuration settings.
+### Models (`models/`)
+
+`__init__.py` `book_model.py` `user_model.py` `todo.py` `my_config.py`
+  
+Defines the application's core data structures using Pydantic and Beanie.
 
 
-#### Routers (`routers/`)
-Defines application routes and business logic.
-- **`book_router.py`** – Endpoints for adding, editing, deleting, and filtering books.  
-- **`todo_routes.py`** – Handles book status updates and task-like features.  
-- **`user_router.py`** – Manages user registration, login, and admin controls.
+### Routers (`routers/`)
+
+`book_router.py` `todo_routes.py` `user_router.py`
+
+Handles all API routing logic.
 
 
-#### Authentication (`auth/`)
-- **`jwt_auth.py`**  
-  - Handles JWT access token generation and decoding.  
-  - Used for secure login, session validation, and user role management.
+### Authentication (`auth/`) 
+
+`jwt_auth.py` 
+
+Manages JWT token creation and validation for secure authentication.
 
 
-#### Database (`db/`)
-- **`data_base.py`**  
-  - Connects to MongoDB using Beanie ODM.  
-  - Registers `Book` and `User` models with the database.
+### Database (`db/`)
+
+`data_base.py`
+
+Connects to MongoDB via Beanie and registers document models.
 
 
-### Tech Stack Notes
-- **Pydantic** is used for input validation.  
-- **Beanie** integrates with MongoDB for schema modeling and data queries.
+#### Tech Stack Notes
+- **Pydantic**: Ensures data validation for incoming requests.
+- **Beanie**: ODM layer used to interact with MongoDB through FastAPI.
 
 ---
 
