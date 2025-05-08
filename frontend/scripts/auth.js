@@ -51,8 +51,10 @@ function showLoggedInUser(username) {
 
 
 
+
+
 document.addEventListener("DOMContentLoaded", () => {
-    const createAccountButton = document.getElementById("create-account-button");
+    const createAccountButton = document.getElementById("create-account-btn");
 
     if (!createAccountButton) {
         console.error("Create Account button NOT found!");
@@ -82,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     console.log("Signup successful! Stored Role:", data.role); // Debug log
+
                     localStorage.setItem("access_token", data.access_token);
                     localStorage.setItem("user_role", data.role);
 
