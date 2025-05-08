@@ -53,35 +53,35 @@ Bootstrap 5 and custom CSS are used for layout and styling enhancements.
 The entry point of the FastAPI server. Serves frontend files, connects to MongoDB, and registers API routes.
 
 
-### Models (`models/`)
+#### Models (`models/`)
 
 `__init__.py` `book_model.py` `user_model.py` `todo.py` `my_config.py`
   
 Defines the application's core data structures using Pydantic and Beanie.
 
 
-### Routers (`routers/`)
+#### Routers (`routers/`)
 
 `book_router.py` `todo_routes.py` `user_router.py`
 
 Handles all API routing logic.
 
 
-### Authentication (`auth/`) 
+#### Authentication (`auth/`) 
 
 `jwt_auth.py` 
 
 Manages JWT token creation and validation for secure authentication.
 
 
-### Database (`db/`)
+#### Database (`db/`)
 
 `data_base.py`
 
 Connects to MongoDB via Beanie and registers document models.
 
 
-#### Tech Stack Notes
+### Tech Stack Notes
 - **Pydantic**: Ensures data validation for incoming requests.
 - **Beanie**: ODM layer used to interact with MongoDB through FastAPI.
 
