@@ -60,6 +60,29 @@ function getBooks(){
     xhr.send();
 }
 
+//Upload image function
+const uploadCoverImage = (file, token) => {
+    if (!file) return Promise.resolve(null); // No file? Return `null` immediately
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return fetch("http://localhost:8000/books/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Error uploading image: " + response.statusText);
+        return response.json();
+    })
+    .then(uploadData => uploadData.cover_image)  // Return the uploaded image URL
+    .catch(error => {
+        console.error("Image Upload Failed:", error);
+        alert(`Error uploading image: ${error.message}`);
+        return null;  // Return `null` if upload fails
+    });
+};
 
 // post book function
 const postBook = () => {
@@ -68,6 +91,9 @@ const postBook = () => {
     const genre = document.getElementById('book-genre').value.trim();
     const book_status = document.getElementById('book-status').value;
     const rating = parseInt(document.getElementById('book-rating').value);
+    const review = document.getElementById('book-review').value.trim();
+    const fileInput = document.getElementById('book-cover');
+    const file = fileInput?.files[0];
     
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -85,28 +111,50 @@ const postBook = () => {
         alert(errorMessage);
         return false; // Prevent form submission
     }
-    
-    const bookData = { title, author, genre, book_status, rating };
 
-    fetch('http://localhost:8000/books/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization':  `Bearer ${localStorage.getItem("access_token")}`
-        },
-        body: JSON.stringify(bookData)
+    // uploadCoverImage(file, token)
+    // .then((coverImageBase64) => {
+    //     console.log("uploaded cover image:", coverImageBase64); // Debugging check
+    //     const bookData = { title, author, genre, book_status, rating,
+    //          review, cover_image: coverImageBase64
+    //     };
+
+    //     return fetch('http://localhost:8000/books/', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'Authorization':  `Bearer ${token}`
+    //             },
+    //             body: JSON.stringify(bookData)
+    //         });
+    // })
+    // .then(response => {
+    //     console.log("Response Status:", response.status);
+    //     console.log("Response Headers:", response.headers);
+        
+    //     if (!response.ok) {
+    //         throw new Error('Network response was not ok ' + response.statusText);
+    //     }
+    
+    //     return response.json();
+    // })
+    uploadCoverImage(file, token).then((coverImageBase64) => {
+        console.log("Uploaded cover image:", coverImageBase64); // Debugging check
+        const bookData = {
+            title, author, genre, book_status, rating, review, cover_image: coverImageBase64,
+        };
+
+        return fetch("http://localhost:8000/books/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify(bookData),
+        });
     })
     .then(response => {
-        console.log("Response Status:", response.status);
-        console.log("Response Headers:", response.headers);
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-    
+        if (!response.ok) throw new Error("Network response was not ok " + response.statusText);
         return response.json();
     })
-    .then(data => {
+    .then(() => {
         alert("Book added successfully!");
         getBooks(); // Reload books
         resetModal();
@@ -117,6 +165,7 @@ const postBook = () => {
         console.error('Error Adding Book:', error);
         alert(`Error adding book: ${error.message}`);
     });
+
     
     return true; // Indicate successful submission
 };
@@ -141,6 +190,8 @@ const editBook = (_id) => {
                     genre: xmlDoc.getElementsByTagName("genre")[0]?.textContent || "",
                     book_status: xmlDoc.getElementsByTagName("status")[0]?.textContent || "reading",
                     rating: xmlDoc.getElementsByTagName("rating")[0]?.textContent || "0",
+                    review: xmlDoc.getElementsByTagName("review")[0]?.textContent || "",
+                    cover_image: xmlDoc.getElementsByTagName("cover_image")[0]?.textContent || ""
                 };
 
                 book.book_status = book.book_status.includes("BookStatus.") ? book.book_status.split(".")[1] : book.book_status;
@@ -153,6 +204,8 @@ const editBook = (_id) => {
                 document.getElementById('book-genre').value = book.genre;
                 document.getElementById('book-status').value = book.book_status;
                 document.getElementById('book-rating').value = book.rating;
+                document.getElementById('book-review').value = book.review;
+                document.getElementById('book-cover').value = book.cover_image; // Set cover image if available
                 document.getElementById('book-id').value = _id;  // Store the ID for saving
 
                 console.log("Corrected Book Status:", book.book_status);
@@ -223,26 +276,28 @@ const updateBook = (_id) => {
 // delete book function
 const deleteBook = (_id) => {
     //Find the book in the list
-    if(confirm('Are you sure you want to delete this book?')){
-        console.log(`Deleting Book ID=${_id}`);
-        const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === 4 ) {
-                if(xhr.status === 200){
-                console.log(`Deleted Book ID=${_id}`);
-                getBooks(); 
-
-                } else {
-                    console.error(`Error deleting book: ${xhr.status} ${xhr.statusText}`);
-                }
-            }
-        };
-
-
-        xhr.open('DELETE', `${api}/${_id}`, true);
-        xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
-        xhr.send();
+    if(!confirm("Are you sure you want to delete this book?")){
+        return; // Exit if user cancels
     }
+
+    console.log(`Deleting Book ID=${_id}`);
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 ) {
+            if(xhr.status === 200){
+            console.log(`Deleted Book ID=${_id}`);
+            getBooks(); 
+
+            } else {
+                console.error(`Error deleting book: ${xhr.status} ${xhr.statusText}`);
+                alert(`Error: ${xhr.statusText}`);
+            }
+        }
+    };
+    xhr.open('DELETE', `${api}/${_id}`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("access_token")}`);
+    xhr.send();
+
 };
 
 // to make "status" is displayed as capitalized in modal
@@ -266,29 +321,32 @@ const displayBooks = (books) => {
         const bookElement = document.createElement('div');
         bookElement.className = `col-12 col-md-4 card mb-3 ${getCardColor(book.book_status)}`;
         bookElement.innerHTML = `
-            <div class="card-body">
-                <h3 class="card-title">${book.title}</h3>
-                <p class="card-text">Author: ${book.author}</p>
-                <p class="card-text">Genre: ${book.genre}</p>
-                <p class="card-text">Status: ${formatStatus(book.book_status)}</p>
-                <p class="card-text">Rating: ${book.rating}</p>
-
-
-                <button class="btn btn-warning edit-btn" data-id="${book._id}">Edit Book</button>
-                <button class="btn btn-danger delete-btn" data-id="${book._id}">Delete Book</button>
-            </div>
-        `;
-        bookList.appendChild(bookElement);
-
-        document.getElementById("book-list").addEventListener("click", (event) => {
-            if (event.target.classList.contains("edit-btn")) {
-                editBook(event.target.dataset.id); // Uses `data-id` for dynamic retrieval
-            }
-            if (event.target.classList.contains("delete-btn")) {
-                deleteBook(event.target.dataset.id);
-            }
-        });
+        <div class="card-body">
+        ${book.cover_image ? `
+            <img src="${book.cover_image}" 
+                 class="img-thumbnail" 
+                 style="max-width: 100px; max-height: 100px; float: left; margin-right: 10px;" 
+                 alt="Book Cover" />
+        ` : ''}
         
+            <h3 class="card-title">${book.title}</h3>
+            <p class="card-text">Author: ${book.author}</p>
+            <p class="card-text">Genre: ${book.genre}</p>
+            <p class="card-text">Status: ${formatStatus(book.book_status)}</p>
+            <p class="card-text">Rating: ${book.rating}</p>
+            <button class="btn btn-warning edit-btn" data-id="${book._id}">Edit Book</button>
+            <button class="btn btn-danger delete-btn" data-id="${book._id}">Delete Book</button>
+        </div>
+    `;
+        bookList.appendChild(bookElement);
+    });
+    document.getElementById("book-list").addEventListener("click", (event) => {
+        if (event.target.classList.contains("edit-btn")) {
+            editBook(event.target.dataset.id);
+        }
+        if (event.target.classList.contains("delete-btn")) {
+            deleteBook(event.target.dataset.id);
+        }
     });
 };
 
@@ -377,6 +435,49 @@ const initializeEventListeners = () => {
     });
 };
 
+/* SEARCH FUNCTIONALITY */
+const searchBooks = async (query) => {
+    const encodedQuery = encodeURIComponent(query); 
+    const token = localStorage.getItem("access_token"); 
+
+    try {
+        const response = await fetch(`http://localhost:8000/books/search?query=${encodedQuery}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error("Error fetching books.");
+        }
+
+        const books = await response.json();
+        
+        // Check for empty or missing results
+        if (!books || (Array.isArray(books) && books.length === 0)) {
+            alert("No books found.");
+            return;
+        }
+
+        console.log(" Search results:", books); //  Debugging output
+        displayBooks(books);
+    } catch (error) {
+        console.error(" Error searching books:", error);
+        alert(error.message);
+    }
+};
+// Event listener for search input
+document.getElementById("search-form").addEventListener("submit", async (event) => {
+    event.preventDefault(); // Prevents page reload
+
+    const query = document.getElementById("search-input").value.trim();
+
+    if (!query) {
+        alert("Please enter a search term!");
+        return;
+    }
+
+    console.log(`Searching for: ${query}`); //Debugging output
+    await searchBooks(query);
+});
 
 /* ADMIN CONTROLS: 
     - Promote/Demote users

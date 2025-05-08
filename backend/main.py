@@ -50,6 +50,6 @@ async def home():
 app.include_router(user_router, tags=["Users"], prefix="/users")
 app.include_router(book_router, tags=["Books"], prefix="/books")
 
-# Adjust path to point to ../frontend
 
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")  # Serve images

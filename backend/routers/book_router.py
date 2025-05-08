@@ -1,20 +1,25 @@
 from datetime import datetime
+import os
 from typing import Annotated
 from beanie import PydanticObjectId
 from fastapi import (
     APIRouter,
     Depends,
+    File,
     HTTPException,
     Request,
     Response,
+    UploadFile,
     requests,
     status,
-    Path,
+    Query,
 )
 from auth.jwt_auth import TokenData
 from routers.user_router import get_user
 from models.book_model import Book, BookRequest
 import xml.etree.ElementTree as ET
+import re
+import base64
 
 
 # The Open Library API URL for fetching book details
@@ -28,9 +33,38 @@ max_id: int = 0  # Variable to store the maximum ID of the book
 
 @book_router.post("/", response_model=Book)
 async def create_book(book_data: BookRequest, user=Depends(get_user)):
+    print(f"Received book data: {book_data.dict()}")
+    book_dict = book_data.dict()
+    book_dict["cover_image"] = book_data.cover_image
+
     book = Book(**book_data.dict(), userId=user.username)  # Attach user ID
+    print(
+        f"Saving book with cover: {book.cover_image} and review: {book.review}"
+    )  # Debugging
     await book.insert()
     return book
+
+
+@book_router.post("/upload")
+async def upload_cover(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Only image files are allowed.",
+        )
+
+    try:
+        file_data = await file.read()
+        base64_image = base64.b64encode(file_data).decode("utf-8")
+        cover_image = f"data:image/jpeg;base64,{base64_image}"
+        print(f"Returning Cover Image: {cover_image[:50]}...")
+        return {"cover_image": cover_image}
+    except Exception as e:
+        print(f"Error uploading cover image: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload cover image.",
+        )
 
 
 # Admin only route to get all books
@@ -51,21 +85,55 @@ async def get_all_books(user: Annotated[TokenData, Depends(get_user)]) -> list[B
 
 
 # ISBN -API
-@book_router.get("/isbn/{isbn}")
-async def get_book_by_isbn(isbn: str) -> Book:
-    url = f"{OPEN_LIBRARY_URL}?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        if f"ISBN:{isbn}" in data:
-            return data[f"ISBN:{isbn}"]
+# @book_router.get("/isbn/{isbn}")
+# async def get_book_by_isbn(isbn: str) -> Book:
+#     url = f"{OPEN_LIBRARY_URL}?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
+#     response = requests.get(url)
+#     print(f"Response from Open Library: {response.status_code}")
+
+#     if response.status_code == 200:
+#         data = response.json()
+#         if f"ISBN:{isbn}" in data:
+#             return data[f"ISBN:{isbn}"]
+#         else:
+#             raise HTTPException(status_code=404, detail="Book not found")
+#     else:
+#         raise HTTPException(
+#             status_code=response.status_code,
+#             detail="Error fetching data from Open Library",
+#         )
+
+
+@book_router.get("/books/search")
+async def search_books(
+    query: str, current_user: Annotated[TokenData, Depends(get_user)]
+) -> dict:
+
+    is_isbn = re.fullmatch(r"[\d-]{10,13}", query)  # Detects 10 or 13-digit ISBNs
+
+    # If the query is an ISBN, fetch book details using the Open Library API
+    if is_isbn:
+        url = f"{OPEN_LIBRARY_URL}?bibkeys=ISBN:{query}&format=json&jscmd=data"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get(f"ISBN:{query}", {"detail": "Book not found"})
         else:
-            raise HTTPException(status_code=404, detail="Book not found")
+            raise HTTPException(
+                status_code=response.status_code, detail="Error fetching ISBN data"
+            )
+
+    # If the query is not an ISBN, search for books using the Open Library API
     else:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail="Error fetching data from Open Library",
-        )
+        url = f"https://openlibrary.org/search.json?q={query}"
+        response = requests.get(url)
+        print(f"Response from Open Library: {response.status_code}")
+        if response.status_code == 200:
+            return response.json()["docs"]
+        else:
+            raise HTTPException(
+                status_code=500, detail="Error fetching books from Open Library"
+            )
 
 
 @book_router.get("/my-books")
@@ -95,7 +163,7 @@ async def get_book_by_id(
     if not book:
         print(
             f"Book ID {book_id} not found or doesn't belong to the user!"
-        )  # ✅ Debugging
+        )  # Debugging
         return Response(
             content="<error>Book not found</error>",
             media_type="application/xml",
@@ -109,6 +177,8 @@ async def get_book_by_id(
         <genre>{book.genre}</genre>
         <status>{book.book_status}</status>
         <rating>{book.rating}</rating>
+        <review>{book.review}</review>
+        <cover>{book.cover_image}</cover>
     </book>
     """
     return Response(content=xml_response, media_type="application/xml")
@@ -123,7 +193,7 @@ async def update_book(
     print(f"Received update request for book ID: {book_id}")
 
     body = await request.body()
-    print(f"Received XML Body:\n{body.decode('utf-8')}")  # ✅ Debugging
+    print(f"Received XML Body:\n{body.decode('utf-8')}")  # Debugging
 
     try:
         # Parse XML body manually
@@ -160,7 +230,7 @@ async def update_book(
         # )
 
         update_result = await book_to_update.update({"$set": updated_data})
-        print(f"Update Result: {update_result}")  # ✅ Debugging MongoDB response
+        print(f"Update Result: {update_result}")  # Debugging MongoDB response
 
         updated_book = await Book.get(book_id)
         print(

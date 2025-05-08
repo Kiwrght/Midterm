@@ -19,16 +19,11 @@
   <div class="button-group">
 
     <!-- Search Bar -->
-    <form class="d-flex align-items-center gap-2">
-      <input class="form-control" type="search" placeholder="Search ISBN" aria-label="Search">
+    <form id="search-form" class="d-flex align-items-center gap-2">
+      <input id="search-input" class="form-control" type="search" placeholder="Search ISBN or other Info" aria-label="Search">
       <button class="btn btn-outline-warning" type="submit">Search</button>
     </form>  
 
-    <!-- Filter Buttons
-    <button id="filter-reading" class="btn btn-bd-primary filter-btn">Show Reading</button>
-    <button id="filter-to-read" class="btn btn-bd-primary filter-btn">Show To-Read</button>
-    <button id="filter-completed" class="btn btn-bd-primary filter-btn">Show Completed</button>
-    <button id="filter-all" class="btn btn-bd-primary filter-btn">Show All</button> -->
 
     <div class="dropdown">
       <button class="btn btn-primary dropdown-toggle" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -133,6 +128,19 @@
             <div class="mb-3">
                 <label for="book-rating" class="form-label">Rating *</label>
                 <input type="number" class="form-control" id="book-rating" min="1" max="5" required />
+            </div>
+
+            <!--Review-->
+            <div class="mb-3">
+              <label for="book-review" class="form-label">Review</label>
+              <textarea class="form-control" id="book-review" rows="3"></textarea>
+            </div>
+
+            <!--Cover-->
+            <div class="mb-3">
+              <label for="book-cover" class="form-label">Cover Image</label>
+              <input type="file" class="form-control" id="book-cover" accept="image/*" />
+              <div id="current-cover-preview" style="margin-top: 10px;"></div>
             </div>
           </div>
         <div class="modal-footer">

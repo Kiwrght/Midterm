@@ -19,6 +19,7 @@ class Book(Document):
     review: Optional[str] = None
     createdAt: datetime = datetime.now()
     updatedAt: datetime = datetime.now()
+    cover_image: Optional[str] = None
 
     class Settings:
         name = "books"  # Specify the collection name for Book documents
@@ -35,3 +36,4 @@ class BookRequest(BaseModel):
     dateStarted: Optional[datetime] = None
     dateCompleted: Optional[datetime] = None
     review: Optional[str] = None
+    cover_image: Optional[str] = None
