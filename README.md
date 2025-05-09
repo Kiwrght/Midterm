@@ -55,14 +55,14 @@ The entry point of the FastAPI server. Serves frontend files, connects to MongoD
 
 #### Models (`models/`)
 
-`__init__.py` `book_model.py` `user_model.py` `todo.py` `my_config.py`
+`__init__.py` `book_model.py` `user_model.py` `my_config.py`
   
 Defines the application's core data structures using Pydantic and Beanie.
 
 
 #### Routers (`routers/`)
 
-`book_router.py` `todo_routes.py` `user_router.py`
+`book_router.py` `user_router.py`
 
 Handles all API routing logic.
 
