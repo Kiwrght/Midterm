@@ -28,6 +28,45 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Admin panel element not found in DOM!");
         }
     }
+
+    const downloadButton = document.getElementById("download-books-pdf-btn");
+    if (downloadButton) {
+        downloadButton.addEventListener("click", () => {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                alert("No token found. Please log in.");
+                return;
+            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://localhost:8000/download/pdf", true);
+            xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+            xhr.responseType = "blob"; // Set response type to blob for file download
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const blob = xhr.response;
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.style.display = "none";
+                        a.href = url;
+                        a.download = "my_books.pdf"; // File name
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        alert("Failed to download books as PDF.");
+                        console.error(`Error: ${xhr.status} ${xhr.statusText}`);
+                    }
+                }
+            };
+
+            xhr.send();
+        });
+    } else {
+        console.error("Download button with ID 'download-books-pdf-btn' not found in the DOM.");
+    }
 });
 
 

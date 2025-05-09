@@ -20,6 +20,10 @@ import xml.etree.ElementTree as ET
 import re
 import base64
 import logging
+import fastapi.responses as responses
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +140,39 @@ async def get_all_user_books(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No Books found for your account",
         )
+
+
+@book_router.get("/download/pdf/{user_id}", response_class=responses.FileResponse)
+async def download_book_as_pdf(current_user: Annotated[TokenData, Depends(get_user)]):
+    books = await Book.find({"userID": current_user.username}).to_list()
+    if not books:
+        raise HTTPException(status_code=404, detail="No books found")
+
+    # generate PDF
+    file_path = os.path.join(os.getcwd(), f"{current_user.username}_books.pdf")
+    c = canvas.Canvas(file_path, pagesize=letter)
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 750, f"Books for {current_user.username}")
+    c.drawString(100, 730, "----------------------------------------")
+    y = 710
+    for book in books:
+        c.drawString(100, y, f"Title: {book.title}")
+        c.drawString(100, y - 20, f"Author: {book.author}")
+        c.drawString(100, y - 40, f"Description: {book.description}")
+        c.drawString(100, y - 60, "----------------------------------------")
+        y -= 80
+
+    if y < 50:
+        c.showPage()
+        c.setFont("Helvetica", 12)
+        y = 750
+
+    c.save()
+    return responses.FileResponse(
+        file_path,
+        filename=f"{current_user.username}_books.pdf",
+        media_type="application/pdf",
+    )
 
 
 @book_router.get("/{book_id}", response_model=Book)

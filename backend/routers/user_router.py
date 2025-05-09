@@ -3,8 +3,10 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
+from models.book_model import Book
 from models.user_model import User, UserRequest, UserDto
 import logging
+
 
 from auth.jwt_auth import (
     LoginResult,
