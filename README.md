@@ -18,6 +18,24 @@ Added a user login system using JWT (JSON Web Tokens) for authentication. Users 
 
 ---
 
+## Project Objectives
+
+The app allows users to register, login, and logout the system.
+
+The app has at least two levels of User Roles: (1) basic user, (2) admin, and different user roles have distinct permissions.
+
+The app stores data in MongoDB.
+
+The app has features allowing users to upload/download files and manage files.
+
+The app has features about submitting forms.
+
+The app has logs that are persisted to files on disk.
+
+Our solution has sufficient tests for the backend code.
+
+---
+
 ## Features
 All Users:
 - Add, update, delete, and view books
