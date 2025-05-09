@@ -33,13 +33,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (downloadButton) {
         downloadButton.addEventListener("click", () => {
             const token = localStorage.getItem("access_token");
+            const username = parseJwt(token).username; // Extract username from token
             if (!token) {
                 alert("No token found. Please log in.");
                 return;
             }
             
             const xhr = new XMLHttpRequest();
-            xhr.open("GET", "http://localhost:8000/download/pdf", true);
+            xhr.open("GET", `${api}/download/pdf`, true);
             xhr.setRequestHeader("Authorization", `Bearer ${token}`);
             xhr.responseType = "blob"; // Set response type to blob for file download
 

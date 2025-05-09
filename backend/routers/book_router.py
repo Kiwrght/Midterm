@@ -142,9 +142,9 @@ async def get_all_user_books(
         )
 
 
-@book_router.get("/download/pdf/{user_id}", response_class=responses.FileResponse)
+@book_router.get("/download/pdf", response_class=responses.FileResponse)
 async def download_book_as_pdf(current_user: Annotated[TokenData, Depends(get_user)]):
-    books = await Book.find({"userID": current_user.username}).to_list()
+    books = await Book.find(Book.userId == current_user.username).to_list()
     if not books:
         raise HTTPException(status_code=404, detail="No books found")
 
@@ -158,7 +158,7 @@ async def download_book_as_pdf(current_user: Annotated[TokenData, Depends(get_us
     for book in books:
         c.drawString(100, y, f"Title: {book.title}")
         c.drawString(100, y - 20, f"Author: {book.author}")
-        c.drawString(100, y - 40, f"Description: {book.description}")
+        c.drawString(100, y - 40, f"Status: {book.book_status}")
         c.drawString(100, y - 60, "----------------------------------------")
         y -= 80
 
